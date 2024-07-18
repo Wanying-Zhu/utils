@@ -68,7 +68,7 @@ def run_ols(df_data, phenotype, covars, condition, fh_output, permute=False, ver
     - condition: such as T2D, liver/kidney traits
     - fh_output: output file handle to write result
     - permute=False: Run permutation
-    = fn_permute_pvals, fn_permute_betas, fn_permute_stds: output file of permutation results if permute=True
+    - fn_permute_pvals, fn_permute_betas, fn_permute_stds: output file of permutation results if permute=True
     - verbose: print summary of the model if True
     - indx=None: index number of current trait
     Return:

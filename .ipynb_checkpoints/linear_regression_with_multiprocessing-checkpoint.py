@@ -40,7 +40,6 @@ import pandas as pd
 import argparse
 import logging
 import os
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
@@ -78,7 +77,7 @@ def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, ver
     - condition: such as T2D, liver/kidney traits
     - fn_output: output file name to write the result
     - permute=False: Run permutation
-    = fn_permute_pvals, fn_permute_betas, fn_permute_stds: output file of permutation results if permute=True
+    - fn_permute_pvals, fn_permute_betas, fn_permute_stds: output file of permutation results if permute=True
     - verbose: print summary of the model if True
     - indx=None: index number of current trait
     Return:
