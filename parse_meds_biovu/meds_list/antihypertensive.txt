@@ -1,0 +1,163 @@
+Hydralazine
+central alpha agonists
+ACEI/ARB
+Hydralazine
+Hydralazine
+Apresazide
+bidil
+apressoline
+Minoxidil
+Loniten
+Renin antagonist
+aliskiren
+Tekturna
+Central alpha agonists
+clonidine
+catapres
+catapress
+guanabenz
+methyldopa
+methyldopate
+ACEI/ARB
+candesartan
+Atacand
+Irbesartan
+avapro
+lisinopril
+prinivil
+zestril
+trandolapril
+Mavik
+gopten
+odrik
+Losartan
+cozaar
+enalapril
+enalaprilat
+valsartan
+diovan
+telmisartan
+Micardis
+moexipril
+quinapril
+accupril
+ramipril
+altace
+fosinopril
+monopril
+eprosartan
+olmesartan
+benicar
+perindopril
+Aceon
+captopril
+Capoten
+benazepril
+lotensin
+Aldosterone antagonists
+spironolactone
+Aldactone
+eplerenone
+inspra
+Diuretics
+Thiazide
+hydrochlorothiazide
+Esidrix
+indapamide
+lozol
+natrilix
+cyclothiazide
+chlorothiazide
+chlorthalidone
+bendroflumethiazide
+benzothiazide
+K-sparing diuretics
+amiloride
+midamor
+triamterene
+Dyrenium
+Loop diuretics
+furosemide
+lasix
+torsemide
+demadex
+ethacrynic acid
+ethacrynate
+edecrin
+bumetanide
+bumex
+Dyazide
+Moduretic
+Maxzide
+Alpha antagonists
+prazosin
+minipress
+doxazosin
+cardura
+Non-dihydro. CCBs
+verapamil
+calan
+covera
+isoptin
+verelan
+diltiazem
+dilt
+tiazac
+cardizem
+Dihydro CCBs
+isradipine
+Dynacirc
+nicardipine
+nifedipine
+procardia
+nisoldipine
+felodipine
+plendil
+Amlodipine
+norvasc
+caduet
+bepridil
+vascor
+Beta Blockers
+propranolol
+inderal
+metoprolol
+toprol
+labetalol
+trandate
+nadolol
+corgard
+esmolol
+brevibloc
+pindolol
+penbutolol
+levatol
+Labetalol
+Normodyne
+atenolol
+tenormin
+carvedilol
+coreg
+bisoprolol
+Zebeta
+Thiazide/BB
+corzide
+Tenoretic
+lopressor HCT
+Thiazide/ACEI_ARB
+zestoretic
+Avalide
+hyzaar
+uniretic
+benicar HCT
+accuretic
+Teveten HCT
+lotensin HCT
+micardis HCT
+atacand HCT
+Diovan HCT
+Monopril HCT
+Thiazide/aldosterone antagonist
+aldactazide
+Thiazide/Renin antagonist
+Tekturna HCT 
