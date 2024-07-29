@@ -18,7 +18,6 @@ python linear_regression_with_multiprocessing.py \
 
 To run all phenotypes provided in the input file, and generate plots,
 use multithreading, and save residual:
-
 python linear_regression_with_multiprocessing.py \
 --input_file example_data/input.csv \
 --output_path output \
@@ -30,9 +29,9 @@ python linear_regression_with_multiprocessing.py \
 --id_col ID \
 --threads 8 \
 --get_residual \
---permute 1000 \
 --overwrite \
---verbose
+--permute 100
+
 '''
 
 import pandas as pd
@@ -218,14 +217,16 @@ def run_ols_wapped(arguments):
     '''
     return run_ols(*arguments)
 
-def run_ols_multithreading(df_data, lst_phenotype, covars, condition, fn_output, permute=False, verbose=False,
-                           fn_permute_pvals='', fn_permute_betas='', fn_permute_stds=''):
+def run_ols_multithreading(df_data, lst_phenotype, covars, condition, fn_output,
+                           permute=False, verbose=False, fn_permute_pvals='', fn_permute_betas='',
+                           fn_permute_stds='', get_residual=False, fn_residual='', fn_model=''):
     '''
     Run linear regression with multiprocessing.
     Output result into temp files. Merge and remove tmp files once all processes are done
-    Params:
+    Params: parameters used by run_ols()
     - df_data: a DataFrame containing phenotypes and covariates
     - lst_phenotype: a list of phenotypes to run OLS
+    - fn_residual
     '''
     arguments = [] # Create positional arguments to use in run_ols()
     # Store file names of tmp files for merging and cleaning
@@ -242,8 +243,9 @@ def run_ols_multithreading(df_data, lst_phenotype, covars, condition, fn_output,
         tmp_permute_stds.append(fn_tmp_perm_stds)
         
         # fn_permute_*.tmp* files are intermediate files and will be merged and deleted at the end
-        args_single_run = [df_data, phenotype, covars, condition, fn_tmp_result, permute, verbose,
-                           fn_tmp_perm_pvals, fn_tmp_perm_betas, fn_tmp_perm_stds, i, args.get_residual]
+        args_single_run = [df_data, phenotype, covars, condition, fn_tmp_result,
+                           permute, verbose, fn_tmp_perm_pvals, fn_tmp_perm_betas,
+                           fn_tmp_perm_stds, i, fn_model, args.get_residual, fn_residual]
         arguments.append(args_single_run)
         
     if len(lst_phenotype)>10000:
