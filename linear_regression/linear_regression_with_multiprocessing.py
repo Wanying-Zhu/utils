@@ -9,7 +9,7 @@ python linear_regression_with_multiprocessing.py \
 --output_fn result_single_lipid.txt \
 --covars AGE GENDER PC1 PC2 PC3 \
 --condition CONDITION1 \
---phenotype LIPID1 \
+--phenotype LIPID4 \
 --ignore_cols ID \
 --id_col ID \
 --overwrite \
