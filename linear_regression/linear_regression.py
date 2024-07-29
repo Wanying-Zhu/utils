@@ -16,12 +16,12 @@ python linear_regression.py \
 
 To run all phenotypes provided in the input file, and generate plots:
 python linear_regression.py \
---input_file /data100t1/home/gabi_castrodad/gabi_summer_project_files/data/lipid_class.with_covar_pcair_pc.log2.discovery.csv \
---output_path result \
+--input_file example_data/input.txt \
+--output_path output \
 --output_fn result.txt \
---covars AGE_AT_VISIT GENDER PC1 PC2 PC3 PC4 PC5 \
---condition VISIT \
---ignore_cols RRID LABID \
+--covars AGE GENDER PC1 PC2 PC3 \
+--condition CONDITION1 \
+--ignore_cols ID CONDITION2 \
 --permute 1000 \
 --plot
 '''

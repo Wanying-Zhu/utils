@@ -3,40 +3,36 @@
 '''
 Example runs in terminal:
 To run a single trait:
-python linear_regression.py \
---input_file /data100t1/home/gabi_castrodad/gabi_summer_project_files/data/lipid_class.with_covar_pcair_pc.log2.discovery.csv \
---output_path result \
---output_fn result.txt \
---covars AGE_AT_VISIT GENDER PC1 PC2 PC3 PC4 PC5 \
---condition VISIT \
---phenotype Sph
+python linear_regression_with_multiprocessing.py \
+--input_file example_data/input.csv \
+--output_path output \
+--output_fn result_single_lipid.txt \
+--covars AGE GENDER PC1 PC2 PC3 \
+--condition CONDITION1 \
+--phenotype LIPID1 \
+--ignore_cols ID \
+--verbose
 
-To run all phenotypes provided in the input file, and generate plots:
-python linear_regression.py \
---input_file /data100t1/home/gabi_castrodad/gabi_summer_project_files/data/lipid_class.with_covar_pcair_pc.log2.discovery.csv \
---output_path result \
---output_fn result.txt \
---covars AGE_AT_VISIT GENDER PC1 PC2 PC3 PC4 PC5 \
---condition VISIT \
---ignore_cols RRID LABID \
---permute 1000 \
---plot
+To run all phenotypes provided in the input file, and generate plots,
+use multithreading, and save residual:
 
-Use multithreading:
-python linear_regression.py \
---input_file /belowshare/vumcshare/data100t1/home/wanying/CCHC/lipidomics/20240529_differential_abundance_analysis/inputs/lipid_species.pheno.with_covar_pcair_pc.log2.csv \
---output_path result \
---output_fn multiprocessing.txt \
---covars AGE_AT_VISIT GENDER PC1 PC2 PC3 PC4 PC5 PEER1 PEER2 PEER3 PEER4 PEER5 PEER6 PEER7 PEER8 PEER9 PEER10 PEER11 PEER12 PEER13 PEER14 PEER15 PEER16 PEER17 PEER18 PEER19 PEER20 \
---ignore_cols RRID LABID constant TE_kPa TE_CAP_Med FAST_Score agile3 agile4 CREA BUN CKD_EPI_GFR_Calc APRI FIB4_U VISIT PEER21 PEER22 PEER23 PEER24 PEER25 PEER26 PEER27 PEER28 PEER29 PEER30 PEER31 PEER32 PEER33 PEER34 PEER35 PEER36 PEER37 PEER38 PEER39 PEER40 PEER41 PEER42 PEER43 PEER44 PEER45 PEER46 PEER47 PEER48 PEER49 PEER50 PEER51 PEER52 PEER53 PEER54 PEER55 PEER56 PEER57 PEER58 PEER59 PEER60 \
---permute 100 \
+python linear_regression_with_multiprocessing.py \
+--input_file example_data/input.csv \
+--output_path output \
+--output_fn result_multiprocessing.txt \
+--covars AGE GENDER PC1 PC2 PC3 \
 --plot \
---condition ADA2010_Cat \
+--condition CONDITION1 \
+--ignore_cols ID CONDITION2 \
 --threads 8 \
---overwrite
+--get_residual \
+--permute 1000 \
+--overwrite \
+--verbose
 '''
 
 import pandas as pd
+import sys
 import argparse
 import logging
 import os
@@ -44,7 +40,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from statsmodels.stats.multitest import fdrcorrection
-import os
 import datetime
 # from multiprocessing import Pool
 
@@ -65,10 +60,54 @@ def setup_log(fn_log, mode='w'):
 
     logging.basicConfig(level=logging.DEBUG,
                         handlers=[logging.FileHandler(filename=fn_log, mode=mode),
-                                  logging.StreamHandler()], format='%(name)s - %(levelname)s - %(message)s')
+                                  logging.StreamHandler()], format='%(message)s')
+
+def process_args():
+    '''
+    Process arguments
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_file', type=str,
+                        help='Input file contains phenotype (with or without condition and covariates), in row x col = sample x feature format. Can be a .csv file or tab delimited file')
+    parser.add_argument('--output_path', type=str, default='./', help='Output directory. Default is current working directgory')
+    parser.add_argument('--output_fn', type=str, default=None, help='Output (result) file name')
+    parser.add_argument('--covar_file', type=str, default=None,
+                        help='(Optional) Name of the file containing covariates and/or condition if not in the input_file, in row x col = sample x feature format. Can be a .csv file or tab delimited file')
+    parser.add_argument('--id_col', type=str, default='LABID', help='Shared ID column between the input file and covariate file')
+    parser.add_argument('--ignore_cols', type=str, nargs='*', default=['RRID', 'LABID'],
+                        help='Columns to be ignored from the analysis. Used if no single phenotype is specified')
+    parser.add_argument('--covars', type=str, nargs='*', help='Covariates of the model, such as sex, age, PCs')
+    parser.add_argument('--condition', type=str, help='Condition of the model, such as T2D')
+    parser.add_argument('--phenotype', type=str, default=None,
+                        help='Outcome of the model, such as lipid concentration. Run all columns in the input file if None (except covariates and condition)')
+    parser.add_argument('--permute', default=None, type=int, help='Run permutation')
+    parser.add_argument('--verbose', action='store_true', help='Print more information. Default value is false')
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing output file if true. Default value is false')
+    parser.add_argument('--plot', action='store_true', help='Create volcano plot and QQ plot. Default value is false')
+    parser.add_argument('--threads', default=1, type=int, help='Number of threads for multiprocessing. Default is none (1)')
+    parser.add_argument('--get_residual', action='store_true', help='Save redisual to output')
+    args = parser.parse_args()
+    
+    # Set up logger file
+    fn_log = f'{args.output_path}/{".".join(args.output_fn.split(".")[:-1])}.log'
+    setup_log(fn_log, mode='w') # Set up a log file
+    logging.getLogger('matplotlib.font_manager').disabled = True # Disable matplotlib font message
+
+    # Record command line call used
+    cmd_used = 'python ' + ' '.join(sys.argv)
+    logging.info('\n# Call used:')
+    logging.info(cmd_used+'\n')
+    
+    logging.info('# Arguments used:')
+    for arg in vars(args):
+        msg = f'# - {arg}: {getattr(args, arg)}'
+        logging.info(msg)
+    
+    return args
+
 
 def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, verbose=False,
-            fn_permute_pvals='', fn_permute_betas='', fn_permute_stds='', indx=None):
+            fn_permute_pvals='', fn_permute_betas='', fn_permute_stds='', indx=None, get_residual=False):
     '''
     Run a single linear regression using model: phenotype ~ covars + condition
     Params:
@@ -80,6 +119,7 @@ def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, ver
     - fn_permute_pvals, fn_permute_betas, fn_permute_stds: output file of permutation results if permute=True
     - verbose: print summary of the model if True
     - indx=None: index number of current trait
+    - get_residual: True: save residuals to output file
     Return:
     - Write pval, std, beta to output file fh_output
     '''
@@ -91,6 +131,14 @@ def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, ver
         pval = results.pvalues[args.condition]
         beta = results.params[args.condition]
         std = results.bse[args.condition]
+
+        # Get info of the model
+        if get_residual: # Save residuals if needed
+            pass
+        # print(res.nobs, res.df_model, res.df_resid, res.rsquared_adj)
+        # print(res.resid)
+        
+        residuals = results
         with open(fn_output, 'a') as fh_output:
             if not args.permute:
                 fh_output.write(f'{phenotype}\t{args.condition}\t{pval}\t{beta}\t{std}\n')
@@ -126,7 +174,7 @@ def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, ver
                 with open(fn_permute_stds, 'a') as fh_permute_stds:
                     fh_permute_stds.write(f'{phenotype}\t{args.condition}\t')
                     fh_permute_stds.write('\t'.join([str(v) for v in stds])+'\n')         
-        # if verbose: print(results.summary())
+        if verbose: print(results.summary())
     except:
         logging.info('# - Ignore column: %s' % phenotype) # Ignore columns that can not be run (usually they are ID columns which do not contain numbers)
 
@@ -142,13 +190,16 @@ def merge_files(input_fns, output_fn, header=False):
     '''
     fh_out = open(output_fn, 'a')
     for fn in tqdm.tqdm(input_fns):
-        with open(fn) as fh:
-            if header: fh.readline() # Skip the header line
-            line = fh.readline().strip()
-            while line != '':
-                fh_out.write(line + '\n')
+        try:
+            with open(fn) as fh:
+                if header: fh.readline() # Skip the header line
                 line = fh.readline().strip()
-        os.remove(fn)
+                while line != '':
+                    fh_out.write(line + '\n')
+                    line = fh.readline().strip()
+            os.remove(fn)
+        except:
+            logging.info('#     - tmp file not found: %s' % fn)
     fh_out.close()
 
 def run_ols_wapped(arguments):
@@ -174,6 +225,7 @@ def run_ols_multithreading(df_data, lst_phenotype, covars, condition, fn_output,
         fn_tmp_perm_pvals = fn_permute_pvals+f'.tmp{i}'
         fn_tmp_perm_betas = fn_permute_betas+f'.tmp{i}'
         fn_tmp_perm_stds = fn_permute_stds+f'.tmp{i}'
+        # print('#'*50, fn_tmp_result)
         tmp_results.append(fn_tmp_result)
         tmp_permute_pvals.append(fn_tmp_perm_pvals)
         tmp_permute_betas.append(fn_tmp_perm_betas)
@@ -193,37 +245,20 @@ def run_ols_multithreading(df_data, lst_phenotype, covars, condition, fn_output,
                     
     logging.info('# - Merge and clean tmp files')
     merge_files(tmp_results, output_fn=fn_output, header=None)
-    merge_files(tmp_permute_pvals, output_fn=fn_permute_pvals, header=None)
-    merge_files(tmp_permute_betas, output_fn=fn_permute_betas, header=None)
-    merge_files(tmp_permute_stds, output_fn=fn_permute_stds, header=None)
+    if args.permute: # Process tmp permutation files
+        merge_files(tmp_permute_pvals, output_fn=fn_permute_pvals, header=None)
+        merge_files(tmp_permute_betas, output_fn=fn_permute_betas, header=None)
+        merge_files(tmp_permute_stds, output_fn=fn_permute_stds, header=None)
+
 
 # ########## Load arguments from commandline ##########
-parser = argparse.ArgumentParser()
-parser.add_argument('--input_file', type=str,
-                    help='Input file contains phenotype (with or without condition and covariates), in row x col = sample x feature format. Can be a .csv file or tab delimited file')
-parser.add_argument('--output_path', type=str, default='./', help='Output directory. Default is current working directgory')
-parser.add_argument('--output_fn', type=str, default=None, help='Output (result) file name')
-parser.add_argument('--covar_file', type=str, default=None,
-                    help='(Optional) Name of the file containing covariates and/or condition if not in the input_file, in row x col = sample x feature format. Can be a .csv file or tab delimited file')
-parser.add_argument('--id_col', type=str, default='LABID', help='Shared ID column between the input file and covariate file')
-parser.add_argument('--ignore_cols', type=str, nargs='*', default=['RRID', 'LABID'],
-                    help='Columns to be ignored from the analysis. Used if no single phenotype is specified')
-parser.add_argument('--covars', type=str, nargs='*', help='Covariates of the model, such as sex, age, PCs')
-parser.add_argument('--condition', type=str, help='Condition of the model, such as T2D')
-parser.add_argument('--phenotype', type=str, default=None,
-                    help='Outcome of the model, such as lipid concentration. Run all columns in the input file if None (except covariates and condition)')
-parser.add_argument('--permute', default=None, type=int, help='Run permutation')
-parser.add_argument('--verbose', action='store_true', help='Print more information. Default value is false')
-parser.add_argument('--overwrite', action='store_true', help='Overwrite existing output file if true. Default value is false')
-parser.add_argument('--plot', action='store_true', help='Create volcano plot and QQ plot. Default value is false')
-parser.add_argument('--threads', default=1, type=int, help='Number of threads for multiprocessing. Default is none (1)')
-args = parser.parse_args()
+args = process_args()
 
 if args.plot: # Import code if plotting is needed
     import sys
     sys.path.append('/data100t1/home/wanying/lab_code/utils')
     from plot_lr_result import plot_lr_result
-if args.threads>1:
+if args.threads>1: # Import multiprocessing if needed
     from multiprocessing import Pool
     if args.threads>os.cpu_count(): # Limit the max number threads to be number of cpus
         args.threads = os.cpu_count()
@@ -234,14 +269,6 @@ if not args.output_fn: args.output_fn = args.phenotype + '_' + '_'.join(args.cov
 if not os.path.isdir(args.output_path):
     print('# Create output path: ' + args.output_path)
     os.makedirs(args.output_path) # Create output folder if not exist
-    
-fn_log = f'{args.output_path}/{".".join(args.output_fn.split(".")[:-1])}.log'
-setup_log(fn_log, mode='w') # Set up a log file
-logging.getLogger('matplotlib.font_manager').disabled = True # Disable matplotlib font message
-logging.info('# Arguments used')
-for arg in vars(args):
-    msg = f'# - {arg}: {getattr(args, arg)}'
-    logging.info(msg)
 
 # ########## Sanity checks ##########
 if not os.path.isfile(args.input_file): # Check if input file exists
@@ -313,7 +340,7 @@ if args.permute:
         with open(fn, 'w') as fh: continue
             
 if args.phenotype: # Run a single phenotype
-    run_ols(df_data=df_data, phenotype=args.phenotype, covars=args.covars, condition=args.condition, fh_output=fn_output, verbose=args.verbose,
+    run_ols(df_data=df_data, phenotype=args.phenotype, covars=args.covars, condition=args.condition, fn_output=fn_output, verbose=args.verbose,
             permute=args.permute, fn_permute_pvals=fn_permute_pvals, fn_permute_betas=fn_permute_betas, fn_permute_stds=fn_permute_stds)
 else:
     lst_phenotype = [] # Create a list of phenotypes to iterate

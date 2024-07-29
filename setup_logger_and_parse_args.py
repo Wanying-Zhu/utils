@@ -29,9 +29,9 @@ def setup_log(fn_log, mode='w'):
     logging.info('# Arguments used:')
 
     for arg in vars(args):
-    cmd_used += f' --{arg} {getattr(args, arg)}'
-    msg = f'# - {arg}: {getattr(args, arg)}'
-    logging.info(msg)
+        cmd_used += f' --{arg} {getattr(args, arg)}'
+        msg = f'# - {arg}: {getattr(args, arg)}'
+        logging.info(msg)
     logging.info('\n# Call used:')
     logging.info(cmd_used+'\n')
     '''
