@@ -11,6 +11,9 @@ python linear_regression_with_multiprocessing.py \
 --condition CONDITION1 \
 --phenotype LIPID1 \
 --ignore_cols ID \
+--id_col ID \
+--overwrite \
+--get_residual \
 --verbose
 
 To run all phenotypes provided in the input file, and generate plots,
@@ -24,6 +27,7 @@ python linear_regression_with_multiprocessing.py \
 --plot \
 --condition CONDITION1 \
 --ignore_cols ID CONDITION2 \
+--id_col ID \
 --threads 8 \
 --get_residual \
 --permute 1000 \
@@ -101,13 +105,13 @@ def process_args():
     logging.info('# Arguments used:')
     for arg in vars(args):
         msg = f'# - {arg}: {getattr(args, arg)}'
-        logging.info(msg)
-    
+        logging.info(msg)   
     return args
 
 
 def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, verbose=False,
-            fn_permute_pvals='', fn_permute_betas='', fn_permute_stds='', indx=None, get_residual=False):
+            fn_permute_pvals='output.permute_pvals', fn_permute_betas='output.permute_betas',
+            fn_permute_stds='output.permute_stds', indx=None, fn_model='output.model', get_residual=False, fn_residual=''):
     '''
     Run a single linear regression using model: phenotype ~ covars + condition
     Params:
@@ -119,26 +123,31 @@ def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, ver
     - fn_permute_pvals, fn_permute_betas, fn_permute_stds: output file of permutation results if permute=True
     - verbose: print summary of the model if True
     - indx=None: index number of current trait
+    - fn_model: file name to save model params (such as number of observations, R2, etc.)
     - get_residual: True: save residuals to output file
+    - fn_residual: file name to save residuals
     Return:
     - Write pval, std, beta to output file fh_output
     '''
     try:
-        X = df_data[[args.condition] + args.covars]
+        X = df_data[[args.condition] + args.covars].copy()
+        X['const'] = 1 # Add a constant column
         y = df_data[phenotype]
         model = sm.OLS(y, X, missing='drop')
         results = model.fit()
         pval = results.pvalues[args.condition]
         beta = results.params[args.condition]
         std = results.bse[args.condition]
-
+        # Get model parameters: Number of observations, number of predictors (regressors), R2, adjusted r2
+        n, p, r2, r2_adj= results.nobs, results.df_model, results.rsquared, results.rsquared_adj
+        with open(fn_model, 'a') as fh_model:
+            fh_model.write(f'{phenotype}\t{n}\t{p}\t{r2}\t{r2_adj}\n')
+                        
         # Get info of the model
-        if get_residual: # Save residuals if needed
-            pass
-        # print(res.nobs, res.df_model, res.df_resid, res.rsquared_adj)
-        # print(res.resid)
+        if get_residual: # Save residuals if needed 
+            with open(fn_residual, 'a') as fh_resid:
+                fh_resid.write(phenotype+'\t'+'\t'.join([str(val) for val in results.resid])+'\n')
         
-        residuals = results
         with open(fn_output, 'a') as fh_output:
             if not args.permute:
                 fh_output.write(f'{phenotype}\t{args.condition}\t{pval}\t{beta}\t{std}\n')
@@ -176,7 +185,8 @@ def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, ver
                     fh_permute_stds.write('\t'.join([str(v) for v in stds])+'\n')         
         if verbose: print(results.summary())
     except:
-        logging.info('# - Ignore column: %s' % phenotype) # Ignore columns that can not be run (usually they are ID columns which do not contain numbers)
+        logging.info('# - Ignore column: %s' % phenotype) # Ignore columns that can not be run (usually they are ID columns which do not contain numbers)        
+
 
 def merge_files(input_fns, output_fn, header=False):
     '''
@@ -232,15 +242,14 @@ def run_ols_multithreading(df_data, lst_phenotype, covars, condition, fn_output,
         tmp_permute_stds.append(fn_tmp_perm_stds)
         
         # fn_permute_*.tmp* files are intermediate files and will be merged and deleted at the end
-        args_single_run = [df_data, phenotype, covars, condition, fn_tmp_result, permute,
-                           verbose, fn_tmp_perm_pvals, fn_tmp_perm_betas, fn_tmp_perm_stds, i]
+        args_single_run = [df_data, phenotype, covars, condition, fn_tmp_result, permute, verbose,
+                           fn_tmp_perm_pvals, fn_tmp_perm_betas, fn_tmp_perm_stds, i, args.get_residual]
         arguments.append(args_single_run)
         
     if len(lst_phenotype)>10000:
         chunksize = len(lst_phenotype)//(args.threads*4) # Use the same chunckszie as multiprocessing.map when list is large
     else: chunksize = 1 # Also the default chuncksize of imap/imap_unordered
     with Pool(args.threads) as p:
-    # p.starmap(run_ols, arguments)
         for _ in tqdm.tqdm(p.imap_unordered(run_ols_wapped, arguments, chunksize=chunksize), total=len(lst_phenotype)): pass
                     
     logging.info('# - Merge and clean tmp files')
@@ -249,9 +258,9 @@ def run_ols_multithreading(df_data, lst_phenotype, covars, condition, fn_output,
         merge_files(tmp_permute_pvals, output_fn=fn_permute_pvals, header=None)
         merge_files(tmp_permute_betas, output_fn=fn_permute_betas, header=None)
         merge_files(tmp_permute_stds, output_fn=fn_permute_stds, header=None)
+# ########## End of helper funcitons ##########
 
-
-# ########## Load arguments from commandline ##########
+# Load arguments from commandline
 args = process_args()
 
 if args.plot: # Import code if plotting is needed
@@ -324,6 +333,17 @@ logging.info('')
 logging.info('# Run linear regression')
 fn_output = f'{args.output_path}/{args.output_fn}'
 
+# Save model params (number of observations, R2, etc.)
+fn_model = f'{args.output_path}/{".".join(args.output_fn.split(".")[:-1])}.model'
+with open(fn_model, 'w') as fh_model: # Write header line
+    fh_model.write('phenotype\tN_observations\tN_predictors\tR2\tAdjusted_R2\n')
+    
+# Save residual if needed
+fn_residual = f'{args.output_path}/{".".join(args.output_fn.split(".")[:-1])}.residual'
+if args.get_residual: # Save residuals if needed
+    with open(fn_residual, 'w') as fh_resid: # Write header line (sample IDs)
+        fh_resid.write('phenotype\t'+'\t'.join(df_data[args.id_col])+'\n')
+
 with open(fn_output, 'w') as fh_output:
     if not args.permute:
         fh_output.write('phenotype\tcondition\tpval\tbeta\tstd\n') # Write header line
@@ -340,8 +360,11 @@ if args.permute:
         with open(fn, 'w') as fh: continue
             
 if args.phenotype: # Run a single phenotype
-    run_ols(df_data=df_data, phenotype=args.phenotype, covars=args.covars, condition=args.condition, fn_output=fn_output, verbose=args.verbose,
-            permute=args.permute, fn_permute_pvals=fn_permute_pvals, fn_permute_betas=fn_permute_betas, fn_permute_stds=fn_permute_stds)
+    run_ols(df_data=df_data, phenotype=args.phenotype, covars=args.covars,
+            condition=args.condition, fn_output=fn_output, verbose=args.verbose,
+            permute=args.permute, fn_permute_pvals=fn_permute_pvals,
+            fn_permute_betas=fn_permute_betas, fn_permute_stds=fn_permute_stds,
+            fn_model=fn_model, get_residual=args.get_residual, fn_residual=fn_residual)
 else:
     lst_phenotype = [] # Create a list of phenotypes to iterate
     for val in df_data.columns:
@@ -350,13 +373,19 @@ else:
                 
     if args.threads>1: # Multiprocessing
         logging.info('# Run regression with multiprocessing')
-        run_ols_multithreading(df_data=df_data, lst_phenotype=lst_phenotype, covars=args.covars, condition=args.condition, fn_output=fn_output, permute=args.permute,
-                               verbose=args.verbose, fn_permute_pvals=fn_permute_pvals, fn_permute_betas=fn_permute_betas, fn_permute_stds=fn_permute_stds)
+        run_ols_multithreading(df_data=df_data, lst_phenotype=lst_phenotype, covars=args.covars,
+                               condition=args.condition, fn_output=fn_output, permute=args.permute,
+                               verbose=args.verbose, fn_permute_pvals=fn_permute_pvals,
+                               fn_permute_betas=fn_permute_betas, fn_permute_stds=fn_permute_stds,
+                               fn_model=fn_model, get_residual=args.get_residual, fn_residual=fn_residual)
     else: # Regular sequential runs
         for i, phenotype in enumerate(lst_phenotype):
             print(f'\r# - Processing: {i+1}/{len(lst_phenotype)}'+' '*20, end='', flush=True)
-            run_ols(df_data=df_data, phenotype=phenotype, covars=args.covars, condition=args.condition, fn_output=fn_output, verbose=args.verbose,
-                    permute=args.permute, fn_permute_pvals=fn_permute_pvals, fn_permute_betas=fn_permute_betas, fn_permute_stds=fn_permute_stds, indx=i+1)
+            run_ols(df_data=df_data, phenotype=phenotype, covars=args.covars,
+                    condition=args.condition, fn_output=fn_output, verbose=args.verbose,
+                    permute=args.permute, fn_permute_pvals=fn_permute_pvals,
+                    fn_permute_betas=fn_permute_betas, fn_permute_stds=fn_permute_stds,
+                    indx=i+1, fn_model=fn_model, get_residual=args.get_residual, fn_residual=fn_residual)
         print(f'\r# - Processing: {i+1}/{len(lst_phenotype)}'+' '*20)
 
 # Record running time
