@@ -6,8 +6,7 @@ from query_dbsnp import query_rsids, query_positions
 query_rsids(['rs1234', 'rs4567'], output='result.txt', not_found='not_found.txt')
 
 query_positions(['5:11893', '5:11963'], output='result.txt', not_found='not_found.txt')
-wierd: query_positions(['8:75707664', '8:75707678'], output='result.txt', not_found='not_found.txt')
-query_positions(['8:75707678', '8:75707664'], output='result.txt', not_found='not_found.txt')
+query_positions(['8:75707664', '8:75707678'], output='result.txt', not_found='not_found.txt')
 '''
 
 
