@@ -26,6 +26,8 @@ print('\n# Save to output:', output_fn+'.txt')
 df_merged.sort_index(inplace=True)
 df_merged.to_csv(output_fn+'.txt', sep='\t')
 
-print('\n# Save binary to output:', output_fn+'.binary.txt')
+print('# Save binary to output:', output_fn+'.binary.txt')
 df_merged[:] = np.where(df_merged>0, 1, 0) # Replace with binary values
 df_merged.to_csv(output_fn+'.binary.txt', sep='\t')
+
+print('# DONE')

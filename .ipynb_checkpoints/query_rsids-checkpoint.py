@@ -30,6 +30,7 @@ def query_rsids(rsids, output='result.txt', not_found='not_found.txt'):
         response = requests.get(url)
         
         try:
+            txt = None # Reset txt
             # Parse the HTML content
             soup = BeautifulSoup(response.text, 'html.parser')
             for tag in soup.find_all('dd'):

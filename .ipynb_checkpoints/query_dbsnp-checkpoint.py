@@ -1,11 +1,13 @@
 '''
 Example usage:
-
+import sys
 sys.path.append('/data100t1/home/wanying/lab_code/utils')
 from query_dbsnp import query_rsids, query_positions
 query_rsids(['rs1234', 'rs4567'], output='result.txt', not_found='not_found.txt')
 
 query_positions(['5:11893', '5:11963'], output='result.txt', not_found='not_found.txt')
+wierd: query_positions(['8:75707664', '8:75707678'], output='result.txt', not_found='not_found.txt')
+query_positions(['8:75707678', '8:75707664'], output='result.txt', not_found='not_found.txt')
 '''
 
 
@@ -32,11 +34,13 @@ def query_rsids(rsids, output='result.txt', not_found='not_found.txt'):
         response = requests.get(url)
         
         try:
+            txt = None # Reset txt
             # Parse the HTML content
             soup = BeautifulSoup(response.text, 'html.parser')
             for tag in soup.find_all('dd'):
                 if 'GRCh' in tag.text:
                     txt = tag.text
+                    break
             b38, b37, _ = txt.split(')')
             b38 = b38.split('\n(')[0]
             b37 = b37.split('\n(')[0]
@@ -64,16 +68,17 @@ def query_positions(positions, output='result.txt', not_found='not_found.txt'):
     # Define the URL you want to query
         chr_num, pos = snp.split(':')
         url = 'https://www.ncbi.nlm.nih.gov/snp/?term=' + chr_num + '%3A' + pos
-        
         # Send a GET request to the URL
         response = requests.get(url)
         
         try:
             # Parse the HTML content
+            txt, rsid = None, 'NA' # Reset txt and rsid
             soup = BeautifulSoup(response.text, 'html.parser')
             for tag in soup.find_all('dd'):
                 if 'GRCh' in tag.text:
                     txt = tag.text
+                    break
             b38, b37, _ = txt.split(')')
             b38 = b38.split('\n(')[0]
             b37 = b37.split('\n(')[0]
@@ -82,7 +87,6 @@ def query_positions(positions, output='result.txt', not_found='not_found.txt'):
                 if 'snp/rs' in tag.get('href'):
                     rsid = tag.text
                     break
-                    
             line = f'{snp}\t{rsid}\t{b37}\t{b38}'
             fh_output.write(line+'\n')
         except:
