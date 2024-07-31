@@ -91,6 +91,13 @@ def process_args():
     parser.add_argument('--get_residual', action='store_true', help='Save redisual to output')
     args = parser.parse_args()
     
+    if '.' not in agrs.output_fn:
+        args.output_fn = args.output_fn + '.txt'
+        
+    if not os.path.isdir(args.output_path):
+        print('# Create output path: ' + args.output_path)
+        os.makedirs(args.output_path) # Create output folder if not exist
+    
     # Set up logger file
     fn_log = f'{args.output_path}/{".".join(args.output_fn.split(".")[:-1])}.log'
     setup_log(fn_log, mode='w') # Set up a log file
@@ -276,10 +283,6 @@ if args.threads>1: # Import multiprocessing if needed
     import tqdm
 
 if not args.output_fn: args.output_fn = args.phenotype + '_' + '_'.join(args.covars) # Create default output file name if not provided
-
-if not os.path.isdir(args.output_path):
-    print('# Create output path: ' + args.output_path)
-    os.makedirs(args.output_path) # Create output folder if not exist
 
 # ########## Sanity checks ##########
 if not os.path.isfile(args.input_file): # Check if input file exists

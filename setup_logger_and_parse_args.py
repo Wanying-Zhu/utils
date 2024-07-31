@@ -71,6 +71,7 @@ def process_args(log_args, *args):
     terminal_args = parser.parse_args()
     
     if not os.path.isdir(terminal_args.output_path): # Create output folder if not exists
+        print('# Create output path: ' + terminal_args.output_path)
         os.makedirs(terminal_args.output_path)
 
     # Record arguments used

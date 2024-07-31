@@ -75,7 +75,8 @@ def run_ols(df_data, phenotype, covars, condition, fh_output, permute=False, ver
     - Write pval, std, beta to output file fh_output
     '''
     try:
-        X = df_data[[args.condition] + args.covars]
+        X = df_data[[args.condition] + args.covars].copy()
+        X['const'] = 1 # Constant column
         y = df_data[phenotype]
         model = sm.OLS(y, X, missing='drop')
         results = model.fit()
