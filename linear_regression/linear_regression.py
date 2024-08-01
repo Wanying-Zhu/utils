@@ -24,6 +24,9 @@ python linear_regression.py \
 --ignore_cols ID CONDITION2 \
 --permute 1000 \
 --plot
+
+* If only need one predictor, use the same one as --condition and --covars
+
 '''
 
 import pandas as pd
@@ -75,7 +78,8 @@ def run_ols(df_data, phenotype, covars, condition, fh_output, permute=False, ver
     - Write pval, std, beta to output file fh_output
     '''
     try:
-        X = df_data[[args.condition] + args.covars].copy()
+        predictors = list(set([args.condition] + args.covars)) # In case there are duplicate covariates
+        X = df_data[predictors].copy()
         X['const'] = 1 # Constant column
         y = df_data[phenotype]
         model = sm.OLS(y, X, missing='drop')
@@ -160,6 +164,9 @@ parser.add_argument('--plot', action='store_true', help='Create volcano plot and
 parser.add_argument('--threads', default=1, type=int, help='Number of threads for multiprocessing. Default is none (1)')
 args = parser.parse_args()
 
+if '.' not in args.output_fn:
+    args.output_fn = args.output_fn + '.txt'
+
 if args.plot: # Import code if plotting is needed
     import sys
     sys.path.append('/data100t1/home/wanying/lab_code/utils')
@@ -192,7 +199,7 @@ if not os.path.isfile(args.input_file): # Check if input file exists
     
 if args.covar_file: # If covar_file is provided
     if not os.path.isfile(args.covar_file): # Check if covariate file exists
-        msg = '# ERROR: Covarriate file not found: ' + args.covar_fn
+        msg = '# ERROR: Covarriate file not found: ' + args.covar_file
         logging.info(msg)
         exit()
         

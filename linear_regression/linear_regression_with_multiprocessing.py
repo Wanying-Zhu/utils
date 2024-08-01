@@ -32,6 +32,8 @@ python linear_regression_with_multiprocessing.py \
 --overwrite \
 --permute 100
 
+* If only need one predictor, use the same one as --condition and --covars
+
 '''
 
 import pandas as pd
@@ -91,7 +93,7 @@ def process_args():
     parser.add_argument('--get_residual', action='store_true', help='Save redisual to output')
     args = parser.parse_args()
     
-    if '.' not in agrs.output_fn:
+    if '.' not in args.output_fn:
         args.output_fn = args.output_fn + '.txt'
         
     if not os.path.isdir(args.output_path):
@@ -136,7 +138,8 @@ def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, ver
     - Write pval, std, beta to output file fh_output
     '''
     try:
-        X = df_data[[args.condition] + args.covars].copy()
+        predictors = list(set([args.condition] + args.covars)) # In case there are duplicate covariates
+        X = df_data[predictors].copy()
         X['const'] = 1 # Add a constant column
         y = df_data[phenotype]
         model = sm.OLS(y, X, missing='drop')
@@ -292,7 +295,7 @@ if not os.path.isfile(args.input_file): # Check if input file exists
     
 if args.covar_file: # If covar_file is provided
     if not os.path.isfile(args.covar_file): # Check if covariate file exists
-        msg = '# ERROR: Covarriate file not found: ' + args.covar_fn
+        msg = '# ERROR: Covarriate file not found: ' + args.covar_file
         logging.info(msg)
         exit()
         
