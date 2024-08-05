@@ -1,3 +1,4 @@
+# NOT TESTED
 # OLS or logistic regression for GWAS, TWAS or other omic-wide associations
 import statsmodels.formula.api as smf
 from statsmodels.stats.multitest import fdrcorrection
