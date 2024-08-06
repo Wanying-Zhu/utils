@@ -11,12 +11,13 @@ python /data100t1/home/wanying/BioVU/202405_PAGE_PRS/code/utils/get_weighted_dos
 --method PT \
 --chromosome 1 \
 --ancestry EUR \
---vcf /data100t1/share/BioVU/TOPMed_imputed/remerged_EUR/merged_chr1.vcf.gz \
---snp_list /data100t1/home/wanying/BioVU/202405_PAGE_PRS/supporting_files/redo/HDL/PT/chr1_snp.list \
---output_fn /data100t1/home/wanying/BioVU/202405_PAGE_PRS/outputs/redo/flipped_dosage_weighted/EUR/HDL/HDL_PT_chr1.weighted_dosage \
+--vcf example_data/AFR.chr1.vcf.gz \
+--snp_list example_data/chr1_snp.list \
+--output_fn output/chr1.weighted_dosage \
 --impute \
---mean_af_col_anc MeanAF_European \
---mean_af_col MeanAF
+--mean_af_col_anc MeanAF_African_American \
+--mean_af_col MeanAF \
+--overwrite
 '''
 
 import pandas as pd

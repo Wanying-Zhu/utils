@@ -1,0 +1,2 @@
+GRCh38,GRCh37,chr,pos,ref,alt,PRS_effect_allele,PRS_weight,MeanAF,MeanAF_African_American,MeanAF_European,MeanAF_Hispanic,MeanAF_Asian,MeanAF_Native_Hawaiian,MeanAF_American_Indian
+1:39897:C:T,,chr1,39897,C,T,C,-0.015,,,,,,,
