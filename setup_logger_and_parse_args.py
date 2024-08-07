@@ -30,6 +30,7 @@ def setup_log(fn_log, mode='w'):
     # logging.warning('This is a warning message')
     # logging.error('This is an error message')
     # logging.critical('This is a critical message')
+    
     '''
     # Once arguments are parsed, record script used
     cmd_used = 'python ' + os.path.basename(__file__)
@@ -47,14 +48,20 @@ def process_args(log_args, *args):
     '''
     Process arguments
     Example call
-    process_args(True,
-                 {'flag_name':'--flag1', 'default': 'flag1 default value', 'type': 'str', 'help': 'flag1 help message'},
-                 {'flag_name':'--flag2', 'default': 1, 'type': 'int', 'help': 'flag2 help message'})
+    args = process_args(True,
+                        {'flag_name':'--flag1', 'default': 'flag1 default value', 'type': 'str', 'help': 'flag1 help message'},
+                        {'flag_name':'--flag2', 'default': 1, 'type': 'int', 'help': 'flag2 help message'},
+                        {'flag_name':'--flag3', 'action': 'store_true', 'help': 'flag3 help message'},
+                        {'flag_name':'--flag4', 'nargs': '*'})
     Params:
     - log_args: If true, save arguments into log file
     - *args: any other arguments need to be parsed, keep details in a dictionary.
              Must have a key of 'flag_name'. Other key/value pairs are passed to parser.add_argument().
-             For example: {'flag_name':'--flag1', 'default': 'flag1 default value', 'type': 'str', 'help': 'flag1 help message'}
+             For example: {'flag_name':'--flag1', 'default': 'flag1 default value', 'type': 'str', 'help': 'flag1 help message'}.
+             Valid key names are:
+                 - flag_name
+                 - Parameters of ArgumentParser.add_argument():
+                     - action, nargs, const, default, type, choices, required, help, metavar, dest
     '''
     parser = argparse.ArgumentParser()
     # parser.add_argument('--input_fn', help='Input file name', type=str)
