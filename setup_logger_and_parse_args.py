@@ -1,5 +1,7 @@
 import logging
 import argparse
+import os
+import sys
 
 def setup_log(fn_log, mode='w'):
     '''
@@ -12,9 +14,14 @@ def setup_log(fn_log, mode='w'):
     # f string is not fully compatible with logging, so use %s for string formatting
     logging.root.handlers = [] # Remove potential handler set up by others (especially in google colab)
 
+    # logging.basicConfig(level=logging.DEBUG,
+    #                     handlers=[logging.FileHandler(filename=fn_log, mode=mode),
+    #                               logging.StreamHandler()], format='%(name)s - %(levelname)s - %(message)s')
+
     logging.basicConfig(level=logging.DEBUG,
                         handlers=[logging.FileHandler(filename=fn_log, mode=mode),
-                                  logging.StreamHandler()], format='%(name)s - %(levelname)s - %(message)s')
+                                  logging.StreamHandler()], format='%(message)s')
+    
     # If only need to write to log file, use below
     # logging.basicConfig(level=logging.DEBUG, filename='app.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
 
@@ -41,8 +48,8 @@ def process_args(log_args, *args):
     Process arguments
     Example call
     process_args(True,
-                 {'flag_name':'--flag1', 'default': 'flag1 default value', 'type': 'str', 'help': 'flag1 help message'}
-                 {'flag_name':'--flag2', 'default': 'flag2 default value', 'type': 'int', 'help': 'flag2 help message'} )
+                 {'flag_name':'--flag1', 'default': 'flag1 default value', 'type': 'str', 'help': 'flag1 help message'},
+                 {'flag_name':'--flag2', 'default': 1, 'type': 'int', 'help': 'flag2 help message'})
     Params:
     - log_args: If true, save arguments into log file
     - *args: any other arguments need to be parsed, keep details in a dictionary.
@@ -50,10 +57,10 @@ def process_args(log_args, *args):
              For example: {'flag_name':'--flag1', 'default': 'flag1 default value', 'type': 'str', 'help': 'flag1 help message'}
     '''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_fn', help='Input file name', type=str)
+    # parser.add_argument('--input_fn', help='Input file name', type=str)
     parser.add_argument('--output_path', type=str, default='./')
     parser.add_argument('--output_prefix', type=str, default='output')
-
+    
     # Parse other arguments
     for a in args:
         # create a string of arguments to pass to parser.add_argument()
@@ -66,6 +73,7 @@ def process_args(log_args, *args):
                     args_to_add += f",{k}='{v}'"
             
         cmd = f"parser.add_argument({args_to_add})"
+        print(cmd)
         eval(cmd)
     
     terminal_args = parser.parse_args()
@@ -80,13 +88,16 @@ def process_args(log_args, *args):
         setup_log(fn_log, mode='w')
         
     # Record script used
-    cmd_used = 'python ' + os.path.basename(__file__)
+    cmd_used = 'python ' + ' '.join(sys.argv)
+
+    logging.info('\n# Call used:')
+    logging.info(cmd_used+'\n')
+    
     logging.info('# Arguments used:')
     for arg in vars(terminal_args):
         cmd_used += f' --{arg} {getattr(terminal_args, arg)}'
         msg = f'# - {arg}: {getattr(terminal_args, arg)}'
         logging.info(msg)
-    logging.info('\n# Call used:')
-    logging.info(cmd_used+'\n')
+    
     return terminal_args
     
