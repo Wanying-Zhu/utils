@@ -80,7 +80,7 @@ def process_args(log_args, *args):
                     args_to_add += f",{k}='{v}'"
             
         cmd = f"parser.add_argument({args_to_add})"
-        print(cmd)
+        # print(cmd)
         eval(cmd)
     
     terminal_args = parser.parse_args()
@@ -93,6 +93,7 @@ def process_args(log_args, *args):
     if log_args:
         fn_log = os.path.join(terminal_args.output_path, terminal_args.output_prefix+'.log')
         setup_log(fn_log, mode='w')
+        # logging.getLogger('matplotlib.font_manager').disabled = True # Disable matplotlib font message
         
     # Record script used
     cmd_used = 'python ' + ' '.join(sys.argv)
