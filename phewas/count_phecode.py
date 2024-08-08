@@ -70,7 +70,7 @@ def process_args():
 args = process_args()
 
 # Process phecode
-logging.info('\n# Load phencode file: '+ args.input_fn)
+logging.info('\n# Load phecode file: '+ args.input_fn)
 if args.input_fn.endswith('.csv'):
     df_phecode = pd.read_csv(args.input_fn, dtype=str)
 else:
@@ -78,14 +78,14 @@ else:
     
 # print(df_phecode.head())
 logging.info('# - File size: (%s, %s)' % df_phecode.shape)
-df_phencode['CONST'] = 0 # Add a constant column for counting
+df_phecode['CONST'] = 0 # Add a constant column for counting
 
-df_phencode_count = df_phecode.groupby(by=args.col_names).count().reset_index()
+df_phecode_count = df_phecode.groupby(by=args.col_names).count().reset_index()
 
 lst_dfs, c = [], 0
-grids = df_phencode_count[args.col_names[0]].unique()
+grids = df_phecode_count[args.col_names[0]].unique()
 logging.info('# - Count number of phecodes and reformat')
-for phecode, df in df_phencode_count.groupby(args.col_names[1]):
+for phecode, df in df_phecode_count.groupby(args.col_names[1]):
     c += 1
     # PHEWAS_CODE_DESCRIPTION or PHEWAS_DATE contains count of that phecode
     df.rename(columns={'CONST':phecode}, inplace=True)
