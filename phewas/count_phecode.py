@@ -95,7 +95,7 @@ for phecode, df in df_phecode_count.groupby(args.col_names[1]):
 df_merged = pd.concat(lst_dfs, axis=1)
 
 output_fn = os.path.join(args.output_path, args.output_prefix)
-logging.info('\n# Save to output: ' + output_fn+'.txt')
+logging.info('\n# Save to output: ' + output_fn+'.count.txt')
 df_merged.sort_index(inplace=True)
 df_merged.to_csv(output_fn+'.count.txt', sep='\t')
 
