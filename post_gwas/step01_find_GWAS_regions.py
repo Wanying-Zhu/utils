@@ -93,10 +93,11 @@ if __name__ == "__main__":
         # Merge regions
         logging.info('# Merge overlapping regions and relabel region index')
         df_regions_merged = merge_regions(df_regions=df_all_regions,
-                                          colname_snp_id='SNP',
+                                          colname_id='SNP',
                                           colname_index='region_index',
                                           colname_pos=args.colname_pval,
                                           colname_chr=args.colname_chr)
+        logging.info('# - Save merged regions')
         df_regions_merged.to_csv(output_fn+'.overlap_merged', sep='\t', index=False)
     else: # No region found
         logging.info('# No region to output')

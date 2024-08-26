@@ -1,6 +1,6 @@
 # merge regions if they overlap
 # Load GWAS region output from 01_find_GWAS_regions.py
-
+import logging
 def find_pairs_of_regions(df_regions,
                           colname_id='SNP',
                           colname_index='region_index',
@@ -84,7 +84,7 @@ def merge_regions(df_regions,
     Return:
     - output: Regions with overlapping regions merged
     '''
-    print('# Get regions to be merged, create new labels')
+    logging.info('\n# Get regions to be merged, create new labels')
     regions_to_merge = list(find_pairs_of_regions(df_regions=df_regions,
                                                   colname_id=colname_id,
                                                   colname_index=colname_index,
@@ -97,7 +97,7 @@ def merge_regions(df_regions,
     for node in lst_nodes:
         dict_new_reion_index[node] = find_connected_nodes(edges=regions_to_merge, node0=node)
 
-    print('# Merge regions and relabel')
+    logging.info('# Merge regions and relabel')
     df_regions.drop_duplicates(subset=[colname_id], inplace=True)
     df_regions['merged_region_index'] = df_regions[colname_index].apply(lambda x: ','.join([str(v) for v in dict_new_reion_index[x]]))
     
