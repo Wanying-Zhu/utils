@@ -46,7 +46,7 @@ def setup_log(fn_log, mode='w'):
 
 def process_args(log_args, *args):
     '''
-    Process arguments
+    Process arguments. The default ones are: --output_path and --output_prefix
     Example call
     args = process_args(True,
                         {'flag_name':'--flag1', 'default': 'flag1 default value', 'type': 'str', 'help': 'flag1 help message'},
@@ -55,7 +55,7 @@ def process_args(log_args, *args):
                         {'flag_name':'--flag4', 'nargs': '*'})
     Params:
     - log_args: If true, save arguments into log file
-    - *args: any other arguments need to be parsed, keep details in a dictionary.
+    - *args: any other arguments need to be parsed, keep details in a dictionary. (One argument with details per dictionary)
              Must have a key of 'flag_name'. Other key/value pairs are passed to parser.add_argument().
              For example: {'flag_name':'--flag1', 'default': 'flag1 default value', 'type': 'str', 'help': 'flag1 help message'}.
              Valid key names are:
@@ -64,6 +64,8 @@ def process_args(log_args, *args):
                      - action, nargs, const, default, type, choices, required, help, metavar, dest
     '''
     parser = argparse.ArgumentParser()
+    
+    # Add some default arguments
     # parser.add_argument('--input_fn', help='Input file name', type=str)
     parser.add_argument('--output_path', type=str, default='./')
     parser.add_argument('--output_prefix', type=str, default='output')
@@ -74,7 +76,7 @@ def process_args(log_args, *args):
         args_to_add = f"'{a['flag_name']}'"
         for k, v in a.items():
             if k != 'flag_name':
-                if k == 'type': # type is not a string
+                if k == 'type' or k == 'choices': # type and choices are not a string
                     args_to_add += f",{k}={v}"
                 else:
                     args_to_add += f",{k}='{v}'"
