@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # Manhattan plot
 def manhattan_plot(data: pd.core.frame.DataFrame, pval: str='pval', position: str='pos',
                    chromosome: str='chr', gene: str='', title: str='manhattan plot',
-                   sig_pval: float=-1, annotate: bool=False, colors: list=['black','grey'],
+                   sig_pval: float=-1, annotate: bool=False, colors: list=['navy', 'cornflowerblue'],
                    markersize: float=2, dpi: float=200, figsize: tuple=(8,4)):
     '''
     Plot Manhattan plot from summary statistics

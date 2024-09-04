@@ -1,24 +1,24 @@
 '''
 Compare the medication file (/data100t1/share/BioVU/phenos/official_release_0619/Below_MEDS_20190531.csv) with a list of drugs.
-Find if each individual used any of the drug in the list (1) or not (0)
+Find if each individual used any of the drug in the list (1) or not (0) at any visit
 Output file has 3 columns: ID, RECORD_Of_DRUG_USAGE, MATCHED
 - RECORD_Of_DRUG_USAGE: number of records matched in the lookup list
 
-Example runs:
-python get_medication_status.py \
---med_record_fn ./example_data/meds_record.csv \
+Example run:
+python get_medication_status_BioVU.py \
+--med_record_fn ./example_data/meds_record_BioVU.csv \
 --drug_name_col DRUG_NAME \
 --med_list ./meds_list/lipid_lowering.txt \
 --output_path ./output \
---output_prefix test_run
+--output_prefix test_run_BioVU
 
-
-python /data100t1/home/wanying/BioVU/202405_PAGE_PRS/code/utils/get_medication_status.py \
---med_record_fn /data100t1/share/BioVU/phenos/official_release_0619/Below_MEDS_20190531.csv \
---drug_name_col DRUG_NAME \
---med_list /data100t1/home/wanying/BioVU/202405_PAGE_PRS/supporting_files/medication_ref/lipid_lowering.txt \
---output_path /data100t1/home/wanying/BioVU/202405_PAGE_PRS/outputs/medication_status \
---output_prefix output
+# Real data
+# python /data100t1/home/wanying/BioVU/202405_PAGE_PRS/code/utils/get_medication_status_BioVU.py \
+# --med_record_fn /data100t1/share/BioVU/phenos/official_release_0619/Below_MEDS_20190531.csv \
+# --drug_name_col DRUG_NAME \
+# --med_list /data100t1/home/wanying/BioVU/202405_PAGE_PRS/supporting_files/medication_ref/lipid_lowering.txt \
+# --output_path /data100t1/home/wanying/BioVU/202405_PAGE_PRS/outputs/medication_status \
+# --output_prefix output
 
 '''
 
