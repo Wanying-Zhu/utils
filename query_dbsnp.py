@@ -13,13 +13,14 @@ query_positions(['8:75707664', '8:75707678'], output='result.txt', not_found='no
 import requests
 from bs4 import BeautifulSoup
 
-def query_rsids(rsids, output='result.txt', not_found='not_found.txt'):
+def query_rsids(rsids, output='result.txt', not_found='not_found.txt', flush=False):
     '''
     Query dbsnp with  rsID and get B37 and B38 positions
     Params
     - rsids: an array of rsIDs to query
     - output: file name of the outputs
     - not_found: a file to store rsIDs that were not found
+    - flush: if ture flush result to output file immediately
     '''
     fh_output = open(output, 'w')
     fh_not_found = open(not_found, 'w')
@@ -45,19 +46,22 @@ def query_rsids(rsids, output='result.txt', not_found='not_found.txt'):
             b37 = b37.split('\n(')[0]
             line = f'{rsid}\t{b37}\t{b38}'
             fh_output.write(line+'\n')
+            if flush:
+                fh_output.flush()
         except:
             fh_not_found.write(rsid+'\n')
         print(f'\r# Processing: {i+1}/{len(rsids)}        ', end='', flush=True)
     print('\n# Done')
     fh_output.close()
 
-def query_positions(positions, output='result.txt', not_found='not_found.txt'):
+def query_positions(positions, output='result.txt', not_found='not_found.txt', flush=False):
     '''
     Query dbsnp with chr_number:position and get rsID, B37 and B38 positions
     Params
     - positions: an array of positions to query. Such as [1:1234, 2:3456]
     - output: file name of the outputs
     - not_found: a file to store positions that were not found
+    - flush: if ture flush result to output file immediately
     '''
     fh_output = open(output, 'w')
     fh_not_found = open(not_found, 'w')
@@ -88,6 +92,8 @@ def query_positions(positions, output='result.txt', not_found='not_found.txt'):
                     break
             line = f'{snp}\t{rsid}\t{b37}\t{b38}'
             fh_output.write(line+'\n')
+            if flush:
+                fh_output.flush()
         except:
             fh_not_found.write(snp+'\n')
         print(f'\r# Processing: {i+1}/{len(positions)}        ', end='', flush=True)
