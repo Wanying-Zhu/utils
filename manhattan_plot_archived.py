@@ -25,33 +25,25 @@ def manhattan_plot(data: pd.core.frame.DataFrame, pval: str='pval', position: st
     Return
     - fig, ax
     '''
-    # if annotate: # If name of gene column is provided
-    #     data_copy = data[[gene, chromosome, position, pval]].sort_values(by=[chromosome, position]).copy()
-    # else:
-    #     data_copy = data[[chromosome, position, pval]].sort_values(by=[chromosome, position]).copy()
-    data_copy = data.sort_values(by=[chromosome, position]).copy()
+    if annotate: # If name of gene column is provided
+        data_copy = data[[gene, chromosome, position, pval]].sort_values(by=[chromosome, position]).copy()
+    else:
+        data_copy = data[[chromosome, position, pval]].sort_values(by=[chromosome, position]).copy()
         
-    # data_copy['indx'] = [x for x in range(len(data_copy))] # Create arbitrary indices for plotting
-    # Do not use index as this might cause shifting in figure due to multi allalic sites
-    # Plot by position instead
+    data_copy['indx'] = [x for x in range(len(data_copy))] # Create arbitrary indices for plotting
     data_copy['log_pval'] = -np.log10(data_copy[pval]) # Plot -log10 pvalues
     label_text, label_pos = [], [] # Keep track of label text and label positions
     grouped = data_copy.groupby(by=chromosome)
     
     fig, ax = plt.subplots(dpi=dpi, figsize=figsize)
-    count, max_pos = 0, 0
-    lst_df = [] # To reconstruct the dataframe with plotting positions
+    count=0
     for chr_num, df in grouped: # Plot each group (grouped by chromosome)
-        label_text.append(int(chr_num))
-        df['indx'] = df[position]+max_pos # Position for plotting
-        label_pos.append(df['indx'].mean()) # Labels of each chromosome
-        lst_df.append(df)
+        label_text.append(chr_num)
+        label_pos.append(df['indx'].mean())
         ax.plot(df['indx'], df['log_pval'], ls='', marker='.',
                 markersize=markersize, color=colors[count%len(colors)])
-        max_pos += df[position].max() # Keep track of max_pos to plot next chr
         count += 1
-    data_copy = pd.concat(lst_df) # Create new dataframe with positions in indx column
-    
+        
     if title is not None: ax.set_title(title)
     ax.set_xlabel('Chromosome')
     ax.set_ylabel('-$log_{10}(p)$')
@@ -70,4 +62,4 @@ def manhattan_plot(data: pd.core.frame.DataFrame, pval: str='pval', position: st
             ax.annotate(text=tmp[gene].values[0],
                         xy=(tmp['indx'].values[0], tmp['log_pval'].values[0]), fontsize='5')
     
-    return fig, ax, data_copy # Return data copy in case need extra plotting
+    return fig, ax

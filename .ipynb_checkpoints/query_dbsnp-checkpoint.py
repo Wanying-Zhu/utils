@@ -13,7 +13,7 @@ query_positions(['8:75707664', '8:75707678'], output='result.txt', not_found='no
 import requests
 from bs4 import BeautifulSoup
 
-def query_rsids(rsids, output='result.txt', not_found='not_found.txt', flush=False):
+def query_rsids(rsids, output='result.txt', not_found='not_found.txt', flush=False, mode='w'):
     '''
     Query dbsnp with  rsID and get B37 and B38 positions
     Params
@@ -21,9 +21,10 @@ def query_rsids(rsids, output='result.txt', not_found='not_found.txt', flush=Fal
     - output: file name of the outputs
     - not_found: a file to store rsIDs that were not found
     - flush: if ture flush result to output file immediately
+    - mode: 'w'=write, 'a'=append to (existing) output file
     '''
-    fh_output = open(output, 'w')
-    fh_not_found = open(not_found, 'w')
+    fh_output = open(output, mode=mode)
+    fh_not_found = open(not_found, mode=mode)
     fh_output.write('rsID\tGRCh37\tGRCh38\n')
     fh_not_found.write('rsID\n')
     for i, rsid in enumerate(rsids):
@@ -54,7 +55,7 @@ def query_rsids(rsids, output='result.txt', not_found='not_found.txt', flush=Fal
     print('\n# Done')
     fh_output.close()
 
-def query_positions(positions, output='result.txt', not_found='not_found.txt', flush=False):
+def query_positions(positions, output='result.txt', not_found='not_found.txt', flush=False, mode='w'):
     '''
     Query dbsnp with chr_number:position and get rsID, B37 and B38 positions
     Params
@@ -62,9 +63,10 @@ def query_positions(positions, output='result.txt', not_found='not_found.txt', f
     - output: file name of the outputs
     - not_found: a file to store positions that were not found
     - flush: if ture flush result to output file immediately
+    - mode: 'w'=write, 'a'=append to (existing) output file
     '''
-    fh_output = open(output, 'w')
-    fh_not_found = open(not_found, 'w')
+    fh_output = open(output, mode=mode)
+    fh_not_found = open(not_found, mode=mode)
     fh_output.write('ID\trsID\tGRCh37\tGRCh38\n')
     fh_not_found.write('ID\n')
     for i, snp in enumerate(positions):

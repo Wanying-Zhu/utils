@@ -140,7 +140,7 @@ def run_ols(df_data, phenotype, covars, condition, fn_output, permute=False, ver
     try:
         predictors = list(set([args.condition] + args.covars)) # In case there are duplicate covariates
         X = df_data[predictors].copy()
-        X['const'] = 1 # Add a constant column
+        X['const'] = 1 # Add a constant column for interception
         y = df_data[phenotype]
         model = sm.OLS(y, X, missing='drop')
         results = model.fit()

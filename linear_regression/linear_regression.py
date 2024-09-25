@@ -265,7 +265,7 @@ if args.phenotype: # Run a single phenotype
 else:
     lst_phenotype = [] # Create a list of phenotypes to iterate
     for val in df_data.columns:
-        if val not in args.covars + args.ignore_cols + [args.condition, args.id_col]: # Exclude covariates and condition columns
+        if val not in args.covars + args.ignore_cols + [args.condition, args.id_col]: # Exclude covariates, condition and other ignored columns
             lst_phenotype.append(val)
                 
     if args.threads>1: # Multiprocessing
