@@ -78,7 +78,8 @@ def process_args():
     parser.add_argument('--output_fn', type=str, default=None, help='Output (result) file name')
     parser.add_argument('--covar_file', type=str, default=None,
                         help='(Optional) Name of the file containing covariates and/or condition if not in the input_file, in row x col = sample x feature format. Can be a .csv file or tab delimited file')
-    parser.add_argument('--id_col', type=str, default='LABID', help='Shared ID column between the input file and covariate file')
+    parser.add_argument('--id_col', type=str, default='LABID',
+                        help='Shared ID column between the input file and covariate file. Not used if run a single phenotype')
     parser.add_argument('--ignore_cols', type=str, nargs='*', default=['RRID', 'LABID'],
                         help='Columns to be ignored from the analysis. Used if no single phenotype is specified')
     parser.add_argument('--covars', type=str, nargs='*', help='Covariates of the model, such as sex, age, PCs')

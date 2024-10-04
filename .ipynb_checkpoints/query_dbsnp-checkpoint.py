@@ -102,5 +102,43 @@ def query_positions(positions, output='result.txt', not_found='not_found.txt', f
     print('\n# Done')
     fh_output.close() 
 
-        
+if __name__ == '__main__': # If run as a script
+    import argparse
+    import sys
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_fn', help='Input file name. One SNP per line', type=str)
+    parser.add_argument('--output_path', type=str, default='./')
+    parser.add_argument('--output_prefix', type=str, default='output')
+    parser.add_argument('--snp_indx', help='Index of the SNP id column. Default is the first column (index=0)', type=int, default=0)
+    parser.add_argument('--delimiter', help='Delimiter of the file. Default is whitespace (tab or space)', type=str, default='whitespace')
+    parser.add_argument('--batch_size', help='Process SNPs by batch size (if need to convert a lot of SNPs). Default (-1) is to load all at once',
+                        type=int, default=-1)
+
+    args = parser.parse_args()
+    if args.delimiter == 'whitespace': # None is to split on whitespace in string.split
+        args.delimiter = None
+
+    # Record script used
+    cmd_used = 'python ' + ' '.join(sys.argv)
+    for arg in vars(terminal_args):
+        cmd_used += f' --{arg} {getattr(terminal_args, arg)}'
+        print('# Call used:')
+        print(cmd_used)
+    
+    print('\n# Query dbSNP:')
+    fh_snp = open(args.input_fn)
+    lst_snps = []
+    count = 0
+    for line in fh_snp:
+        if line.strip() != '':
+            snp = line.strip().split(sep=args.delimiter)[args.snp_indx]
+            lst_snps.append(snp)
+            count += 1
+            if agrs.batch_size != -1:
+                # Process by bath if needed
+                pass
+    print('# SNPs loaded:', len(lst_snps)):
+    
+    fh_snp.close()
     
