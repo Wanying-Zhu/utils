@@ -11,11 +11,12 @@ Similar idea to PEER and SVA, but might have better performance.
 	* eg. RNAseq ~ T2D + sex + age + genetic_PCs + residual_PCs
 
 # Usage
-Check example calls at the beginning of the ./src/get_residual_pca.py file.
+Check example calls at the beginning of the ```./src/get_residual_pca.py``` file.
 
-Get help by ```python ./src/get_residual_pca.py --help```
+Get help of options by ```python ./src/get_residual_pca.py --help```
 
 ```
+# Example
 python ./src/get_residual_pca.py \
 --input_file /data100t1/home/wanying/CCHC/lipidomics/input_docs/lipidomic_measures/lipid_species_INVed_covar.txt \
 --output_path /data100t1/home/wanying/CCHC/lipidomics/20240914_defferential_expresson_in_lipidomics/input/lipid_species_residual_PCA \
