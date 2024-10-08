@@ -140,17 +140,7 @@ def load_data(args):
     else:
         df_data = pd.read_csv(args.input_file, sep='\t') # Assume tab is the delimiter if the input is not a .csv file
     logging.info('# - Input file: (%s,%s)' % df_data.shape)
-    
-    if args.covar_file:
-        if args.covar_file.endswith('csv'):
-            df_covar = pd.read_csv(args.covar_file)
-        else:
-            df_covar = pd.read_csv(args.covar_file, sep='\s+') # Assume tab is the delimiter if the input is not a .csv file
-        logging.info('# - Covariate file: (%s,%s)' % df_covar.shape)
-        
-        # Merge data with covariates
-        df_data = df_data.merge(df_covar, on=args.id_col)
-        
+
     # Drop ignored columns to avoid NA, and remove missing values
     for col in args.ignore_cols:
         if col not in args.covars + [args.id_col]:
@@ -158,6 +148,25 @@ def load_data(args):
                 df_data.drop(columns=col, inplace=True)
             except:
                 pass
+    
+    if args.covar_file:
+        if args.covar_file.endswith('csv'):
+            df_covar = pd.read_csv(args.covar_file)
+        else:
+            df_covar = pd.read_csv(args.covar_file, sep='\s+') # Assume tab is the delimiter if the input is not a .csv file
+        logging.info('# - Covariate file: (%s,%s)' % df_covar.shape)
+
+        # Drop ignored columns to avoid NA, and remove missing values
+        for col in args.ignore_cols:
+            if col not in args.covars + [args.id_col]:
+                try:
+                    df_covar.drop(columns=col, inplace=True)
+                except:
+                    pass
+            
+        # Merge data with covariates
+        df_data = df_data.merge(df_covar, on=args.id_col)
+        
     df_data.dropna(inplace=True)
     logging.info('# - Input file cleaned (no NAs): (%s,%s)' % df_data.shape)
     

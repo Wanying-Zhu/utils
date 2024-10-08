@@ -8,7 +8,7 @@
 import pandas as pd
 import numpy as np
 
-def get_n_pcs_by_elbow(df_pca_var_explained):
+def get_n_pcs_by_elbow(df_pca_var_explained, explained_variance_col):
     '''
     Implement the elbow method to find the optimal number of PCs
     Select K by choosing the point that is the farthest from the line that
@@ -18,10 +18,11 @@ def get_n_pcs_by_elbow(df_pca_var_explained):
     Params:
     - df_pca_var_explained: a dataframe contains columns explained_variance and PC
                             explained_variance can be values from pca.explained_variance_ or pca.explained_variance_ratio
+    - explained_variance_col: column name of explained variance or explained variance ratio
     '''
-    df_pca_var_explained = df_pca_var_explained[['PC', 'explained_variance']].copy()
-    x1, y1 = df_pca_var_explained.sort_values(by='explained_variance').iloc[-1, :]
-    x2, y2 = df_pca_var_explained.sort_values(by='explained_variance').iloc[0, :]
-    df_pca_var_explained['distance'] = np.abs((x2-x1)*(y1-df_pca_var_explained['explained_variance'])-(x1-df_pca_var_explained['PC'])*(y2-y1))/((x2-x1)**2 +(y2-y1)**2)**0.5
+    df_pca_var_explained = df_pca_var_explained[['PC', explained_variance_col]].copy()
+    x1, y1 = df_pca_var_explained.sort_values(by=explained_variance_col).iloc[-1, :]
+    x2, y2 = df_pca_var_explained.sort_values(by=explained_variance_col).iloc[0, :]
+    df_pca_var_explained['distance'] = np.abs((x2-x1)*(y1-df_pca_var_explained[explained_variance_col])-(x1-df_pca_var_explained['PC'])*(y2-y1))/((x2-x1)**2 +(y2-y1)**2)**0.5
     k = df_pca_var_explained.sort_values(by='distance')['PC'].iloc[-1]
     return k, df_pca_var_explained

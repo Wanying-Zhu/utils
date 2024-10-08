@@ -51,17 +51,25 @@ if args.scale: # Scale the data
     logging.info('# - Scale the residuals')
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
-    
+
+logging.info('# - Perform PCA')
 pca = PCA().fit(X)
 df_transformed = pd.DataFrame(pca.transform(X)) # Get transformed data as PCs
 df_transformed.columns = [f'PC{x+1}' for x in range(df_transformed.shape[-1])]
 df_transformed = pd.concat([df_residual[args.id_col], df_transformed], axis=1)
 
-df_pca_var_explained = pd.DataFrame(data = pca.explained_variance_, columns=['explained_variance'])
+var_explained_col = 'explained_variance_ratio'
+df_pca_var_explained = pd.DataFrame(data = pca.explained_variance_ratio_, columns=[var_explained_col])
 df_pca_var_explained['PC'] = [x+1 for x in range(len(df_pca_var_explained))]
+df_pca_var_explained.to_csv(f'{args.output_path}/{args.output_prefix}.explained_variance_ratio', sep='\t', index=False)
+
 # Find number of PCs by elbow method
-k, _ = get_n_pcs_by_elbow(df_pca_var_explained)
+k, _ = get_n_pcs_by_elbow(df_pca_var_explained=df_pca_var_explained, explained_variance_col=var_explained_col)
 logging.info('# - Number of PCs to use by elbow method: %s' % k)
+
+# Find number of PCs of x% variance explained in total
+n_pcs_by_variance = np.nonzero(np.cumsum(df_pca_var_explained[var_explained_col].values)>args.total_var_explained)[0][0]
+logging.info('# - Number of PCs to use to capture '+str(args.total_var_explained*100)+'% of the variance: '+str(n_pcs_by_variance))
 
 logging.info('# - Save PCs')
 out_fn = f'{args.output_path}/{args.output_prefix}.residual.elbow_{k}.pca'
@@ -72,10 +80,12 @@ plot_fn = f'{args.output_path}/{args.output_prefix}.residual.pca.scree_plot.png'
     
 # df_pca_var_explained
 fig, ax = plt.subplots()
-ax.plot(df_pca_var_explained['PC'],df_pca_var_explained['explained_variance'], ls='--', marker='.')
-plt.axvline(x=k, color='r')
+ax.plot(df_pca_var_explained['PC'],df_pca_var_explained[var_explained_col], ls='--', marker='.')
+plt.axvline(x=k, color='r', label=f'Elbow method: N={k}', lw=1)
+plt.axvline(x=n_pcs_by_variance, color='b', lw=1, label=f'To capture {args.total_var_explained*100}% of the variance: N={n_pcs_by_variance}')
+ax.legend()
 ax.set_xlabel('PC')
-ax.set_ylabel('explained variance')
+ax.set_ylabel(var_explained_col)
 ax.set_title(f'Elbow = PC{k}')
 fig.savefig(plot_fn)
 
