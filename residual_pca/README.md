@@ -11,7 +11,8 @@ Similar idea to PEER and SVA, but might have better performance.
 	* eg. RNAseq ~ T2D + sex + age + genetic_PCs + residual_PCs
 
 # Usage
-Check example calls at the beginning of the ./src/get_residual_pca.py file
+Check example calls at the beginning of the ./src/get_residual_pca.py file.
+
 Get help by ```python ./src/get_residual_pca.py --help```
 
 ```
