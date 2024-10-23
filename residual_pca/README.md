@@ -2,8 +2,8 @@ Based on decision of the CCHC group, use the residual PCA method to find hidden 
 Similar idea to PEER and SVA, but might have better performance.
 
 # Steps
-1. Regress out any covariates would be used in differential abundance analysis, including the phenotype.
-	* eg. RNAseq ~ T2D + sex + age + genetic_PCs
+1. Regress out any covariates (except the phenotype of interest) that would be used in differential abundance analysis.
+	* eg. RNAseq ~ sex + age + genetic_PCs
 2. Perform PCA on the residuals, save transformed data as PCs
 3. Determine the number of PCs to use by the elbow method
 	* Similar to the PC selection using a scree plot

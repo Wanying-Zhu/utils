@@ -35,6 +35,8 @@ python linear_regression_with_multiprocessing.py \
 * If only need one predictor, use the same one as --condition and --covars
 
 '''
+# TODO: allow additional covar file (such as list of sample IDs, hidden covariates)
+# parser.add_argument('--additional_covar_fn', type=str, help='File name of additional covariates')
 
 import pandas as pd
 import sys
@@ -314,6 +316,13 @@ if args.input_file.endswith('csv'):
 else:
     df_data = pd.read_csv(args.input_file, sep='\t') # Assume tab is the delimiter if the input is not a .csv file
 logging.info('# - Input file: (%s,%s)' % df_data.shape)
+# Drop ignored columns to avoid NA, and remove missing values
+for col in args.ignore_cols:
+    if col not in args.covars + [args.id_col]:
+        try:
+            df_data.drop(columns=col, inplace=True)
+        except:
+            pass
 
 if args.covar_file:
     if args.covar_file.endswith('csv'):
