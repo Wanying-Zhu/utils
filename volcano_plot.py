@@ -20,7 +20,7 @@ def volcano_plot(df, pval_col, fc_col, size_col=None, log_p=True,
     - linewidths: line width of the markers
     - pval_threshold_col: will ignore logP_threshold if provided.
                        Column name of adjusted p values to determine significant p (<0.05).
-                       Notice that by default adjP provided by DEseq is FDR correted with alpha=0.1
+                       Notice that by default adjP provided by DEseq is FDR corrected with alpha=0.1
     - fig, ax: figure and axes to plot the volcano plot if provided
     - **kwargs: other keyword arguments for plt.scatter, such as linewidths, alpha, etc
     Return:

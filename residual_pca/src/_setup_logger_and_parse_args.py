@@ -33,10 +33,8 @@ def process_args():
                         help='(Optional) Name of the file containing covariates if not in the input_file, in row x col = sample x feature format. Can be a .csv file or tab-delimited file. (Or a list of samples to use in the input)')
     parser.add_argument('--id_col', type=str, default='LABID', help='Shared ID column between the input file and covariate file')
     parser.add_argument('--ignore_cols', type=str, nargs='*', default=['RRID', 'LABID'],
-                        help='Columns to be ignored from the analysis. Used if no single phenotype is specified')
+                        help='Columns to be ignored from the analysis')
     parser.add_argument('--covars', type=str, nargs='*', help='Covariates of the model, such as sex, age, PCs')
-    parser.add_argument('--phenotype', type=str, default=None,
-                        help='Outcome of the model, such as lipid concentration. Run all columns in the input file if None (except covariates and condition)')
     parser.add_argument('--scale', action='store_false', help='(True) Scale (unit variation) the data before PCA. Centering is implemented by PCA already')
     parser.add_argument('--verbose', action='store_true', help='Print more information. Default value is false')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing output file if true. Default value is false')

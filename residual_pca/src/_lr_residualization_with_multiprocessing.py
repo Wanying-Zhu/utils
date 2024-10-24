@@ -170,14 +170,10 @@ def load_data(args):
     df_data.dropna(inplace=True)
     logging.info('# - Input file cleaned (no NAs): (%s,%s)' % df_data.shape)
     
-    # Check if covariates and phenotype columns exist in the input and covariate files
+    # Check if covariates columns exist in the input and covariate files
     for val in args.covars:
         if val not in df_data.columns:
             logging.info('# ERROR: Column not found in data or covariate file: %s' % val)
-            exit()
-    if args.phenotype: # If a single phenotype is provided
-        if args.phenotype not in df_data.columns:
-            logging.info('# ERROR: Phenotype not found in data or covariate file: %s' % args.phenotype)
             exit()
     return df_data
 
@@ -204,28 +200,24 @@ def residualization(args):
     fn_residual = f'{args.output_path}/{args.output_prefix}.residual'
     with open(fn_residual, 'w') as fh_resid: # Write header line (sample IDs)
         fh_resid.write(f'{args.id_col}\t'+'\t'.join(df_data[args.id_col])+'\n')
+    
+    lst_phenotype = [] # Create a list of phenotypes to iterate
+    for val in df_data.columns:
+        if val not in args.covars + args.ignore_cols + [args.id_col]: # Exclude covariates and id columns
+            lst_phenotype.append(val)
                 
-    if args.phenotype: # Run a single phenotype
-        run_ols(df_data=df_data, phenotype=args.phenotype, covars=args.covars,
-                verbose=args.verbose, fn_model=fn_model, fn_residual=fn_residual)
-    else:
-        lst_phenotype = [] # Create a list of phenotypes to iterate
-        for val in df_data.columns:
-            if val not in args.covars + args.ignore_cols + [args.id_col]: # Exclude covariates and id columns
-                lst_phenotype.append(val)
-                    
-        if args.threads>1: # Multiprocessing
-            logging.info('# Run regression with multiprocessing')
-            # run_ols_multithreading(df_data, lst_phenotype, covars, output_prefix, verbose=False, fn_residual='', fn_model='')
-            run_ols_multithreading(df_data=df_data, lst_phenotype=lst_phenotype, covars=args.covars, output_prefix=args.output_prefix,
-                                   threads=args.threads, verbose=args.verbose, fn_model=fn_model, fn_residual=fn_residual)
-        else: # Regular sequential runs
-            for i, phenotype in enumerate(lst_phenotype):
-                print(f'\r# - Processing: {i+1}/{len(lst_phenotype)}'+' '*20, end='', flush=True)
-                # run_ols(df_data, phenotype, covars, verbose=False, indx=None, fn_model=None, fn_residual=None):
-                run_ols(df_data=df_data, phenotype=phenotype, covars=args.covars,
-                        verbose=args.verbose, indx=i+1, fn_model=fn_model, fn_residual=fn_residual)
-            print(f'\r# - Processing: {i+1}/{len(lst_phenotype)}'+' '*20)
+    if args.threads>1: # Multiprocessing
+        logging.info('# Run regression with multiprocessing')
+        # run_ols_multithreading(df_data, lst_phenotype, covars, output_prefix, verbose=False, fn_residual='', fn_model='')
+        run_ols_multithreading(df_data=df_data, lst_phenotype=lst_phenotype, covars=args.covars, output_prefix=args.output_prefix,
+                               threads=args.threads, verbose=args.verbose, fn_model=fn_model, fn_residual=fn_residual)
+    else: # Regular sequential runs
+        for i, phenotype in enumerate(lst_phenotype):
+            print(f'\r# - Processing: {i+1}/{len(lst_phenotype)}'+' '*20, end='', flush=True)
+            # run_ols(df_data, phenotype, covars, verbose=False, indx=None, fn_model=None, fn_residual=None):
+            run_ols(df_data=df_data, phenotype=phenotype, covars=args.covars,
+                    verbose=args.verbose, indx=i+1, fn_model=fn_model, fn_residual=fn_residual)
+        print(f'\r# - Processing: {i+1}/{len(lst_phenotype)}'+' '*20)
 
     # Reformat residual file so that rows are samples, columns are features
     logging.info('# Reformat residual file so that rows are samples, columns are features')
