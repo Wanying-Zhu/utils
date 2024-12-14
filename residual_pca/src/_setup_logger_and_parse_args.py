@@ -1,3 +1,4 @@
+
 import logging
 import argparse
 import os
@@ -41,6 +42,10 @@ def process_args():
     parser.add_argument('--threads', default=1, type=int, help='Number of threads for multiprocessing. Default is none (1)')
     parser.add_argument('--total_var_explained', type=float, default=0.9,
                         help='Get number of PCs by cumulative total variance explained (as a comparison to elbow method)')
+    parser.add_argument('--create_new_covar_file', action='store_true',
+                        help='Merge of PCs selected by elbow method with other covariates, and save to a new file for other analysis')
+    parser.add_argument('--cols_to_save', type=str, default=[], nargs='*',
+                        help='(Optional) If --create_new_covar_file is true, save these columns and covariates used to the new file')
     
     args = parser.parse_args()
 

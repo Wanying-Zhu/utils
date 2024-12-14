@@ -32,6 +32,22 @@ def run_ols(df_data, phenotype, covars, verbose=False,
     Return:
     - Write residual and model to output files
     '''
+    # predictors = list(set(covars)) # In case there are duplicate covariates
+    # X = df_data[predictors].copy()
+    # X['const'] = 1 # Add a constant column for interception
+    # y = df_data[phenotype]
+    # model = sm.OLS(y, X, missing='drop')
+    # results = model.fit()
+    # # Get model parameters: Number of observations, number of predictors (regressors), R2, adjusted r2
+    # n, p, r2, r2_adj= results.nobs, results.df_model, results.rsquared, results.rsquared_adj
+    # with open(fn_model, 'a') as fh_model:
+    #     fh_model.write(f'{phenotype}\t{n}\t{p}\t{r2}\t{r2_adj}\n')
+    
+    # # Save residuals
+    # with open(fn_residual, 'a') as fh_resid:
+    #     fh_resid.write(phenotype+'\t'+'\t'.join([str(val) for val in results.resid])+'\n')    
+    # if verbose: print(results.summary())
+        
     try:
         predictors = list(set(covars)) # In case there are duplicate covariates
         X = df_data[predictors].copy()
@@ -158,7 +174,7 @@ def load_data(args):
 
         # Drop ignored columns to avoid NA, and remove missing values
         for col in args.ignore_cols:
-            if col not in args.covars + [args.id_col]:
+            if col not in args.covars + [args.id_col] + args.cols_to_save:
                 try:
                     df_covar.drop(columns=col, inplace=True)
                 except:
@@ -232,6 +248,10 @@ def residualization(args):
     msg = f'# - Linear regression finished in {duration_d} days, {duration_h} hours, {duration_m} minutes, {duration_s:.4f} seconds'
     logging.info(msg)
     logging.info('')
+    
+    if args.create_new_covar_file: # To save covariates and additional columns with PCs later
+        all_cols_to_save = [args.id_col] + args.covars + [col for col in args.cols_to_save if col not in [args.id_col]+args.covars]
+        return df_data[all_cols_to_save]
     
 
 

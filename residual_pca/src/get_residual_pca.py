@@ -41,7 +41,7 @@ from _elbow_method_find_number_of_pcs import get_n_pcs_by_elbow
 
 # ########## Get arguments and residualization ##########
 args = process_args()
-residualization(args)
+df_covars = residualization(args) # In case need to merge residual PCs with covars
 
 # PCA on residuals
 logging.info('# Run PCA on residuals (PCA transformed residuals)')
@@ -90,5 +90,13 @@ ax.set_ylabel(var_explained_col)
 ax.set_title(f'Elbow = PC{k}')
 fig.savefig(plot_fn)
 
+# Save a new covariate file
+if args.create_new_covar_file:
+    fn_covar_with_pc = f'{args.output_path}/{args.output_prefix}.residual_pca_with_covar'
+    logging.info('# Save a new covariate file with PCs: '+fn_covar_with_pc)
+    cols_pc = [args.id_col] + [f'PC{i+1}' for i in range(k)]
+    df_covar_pc = df_covars.merge(df_transformed[cols_pc], on=args.id_col)
+    df_covar_pc.to_csv(fn_covar_with_pc, index=False, sep='\t')
+    
 logging.info('# DONE')
 
