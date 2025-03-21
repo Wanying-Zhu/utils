@@ -78,6 +78,10 @@ def process_args(log_args, *args):
             if k != 'flag_name':
                 if k == 'type' or k == 'choices': # type and choices are not a string
                     args_to_add += f",{k}={v}"
+                elif k == 'default':
+                    if a.get('nargs')=='*' and a.get('default') is not None: # Default values is a list when nargs is *
+                        args_to_add += f",{k}={v}"
+                    else: args_to_add += f",{k}='{v}'"
                 else:
                     args_to_add += f",{k}='{v}'"
             

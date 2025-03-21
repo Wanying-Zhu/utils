@@ -1,0 +1,6 @@
+snp_id	rsID	ref_allele_in_reference	alt_allele_in_reference
+1:10039:A:C,G	rs978760828	A	C,G
+1:10039:A:AC	rs1639542564	A	AC
+1:10040:C:G	rs1639542499	C	G
+2:10041:C:T	rs1572047123	A	C
+2:10042:C:CT	NA	NA	NA

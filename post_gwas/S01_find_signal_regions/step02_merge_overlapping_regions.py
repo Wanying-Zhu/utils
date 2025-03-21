@@ -8,7 +8,7 @@ def find_pairs_of_regions(df_regions,
                           colname_chr='CHR'):
     '''
     Find pairs of indices of regions to be merged. Eg. (1,2), (3,4), (4,5)
-    It becomes a graph, with each region as a node and a pair of indices as edge
+    Then the question becomes a graph, with each region as a node and a pair of indices as edge
     Param:
     - df_regions: a DataFrame contains regions and indices to each region
     - colname_id: id column to find duplicate snps. Cannot just use pos and chr due to multiallelic sites
@@ -16,8 +16,7 @@ def find_pairs_of_regions(df_regions,
     - colname_pos: column header of the position
     - colname_chr: column header of the chromosome
     Return:
-    - n_merged: number of regions merged (due to overlap)
-    - df_regions_merged: cleaned dataframe
+    - regions_to_merge: tuples of indices of regions to be merged
     '''
     # Find duplicate SNPs
     mask = df_regions[colname_id].duplicated(keep=False)
@@ -82,7 +81,8 @@ def merge_regions(df_regions,
     - colname_pos: column header of the position
     - colname_chr: column header of the chromosome
     Return:
-    - output: Regions with overlapping regions merged
+    - n_merged: number of regions merged (due to overlap)
+    - df_regions_merged: cleaned dataframe with overlapping regions merged
     '''
     logging.info('\n# Get regions to be merged, create new labels')
     regions_to_merge = list(find_pairs_of_regions(df_regions=df_regions,

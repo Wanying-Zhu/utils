@@ -1,6 +1,5 @@
 '''
 Find GWAS region based on lead SNP (SNP with the smallest P value)
-Use region_index in the output file to avoid overlap regions
 Only use distance to look for SNPs.
 Check the --clump function in plink if need to consider LD
 
@@ -56,8 +55,7 @@ if __name__ == "__main__":
                          'help': 'P value threshold to filter when looking for a lead SNP'},
                         {'flag_name':'--window_size', 'default': 1000000, 'type': 'int',
                          'help': 'Window size to take around a lead SNP in bp (pos +/- window_size/2). Default is 1000000=1Mb'},
-                        {'flag_name':'--colname_id', 'default': 'SNP', 'type': 'str',
-                         'help': 'Column name of the SNP IDs. Should not have duplicates by this column, so use chr:pos:ref:alt instead of RSIDs'},
+                        {'flag_name':'--colname_id', 'default': 'SNP', 'type': 'str', 'help': 'Column name of the SNP IDs'},
                         {'flag_name':'--colname_chr', 'default': 'CHR', 'type': 'str',
                          'help': 'Column name of the chromosome number in the GWAS result'},
                         {'flag_name':'--colname_pval', 'default': 'P', 'type': 'str',
@@ -84,7 +82,7 @@ if __name__ == "__main__":
     
     logging.info('# - shape (%s, %s)' % df_gwas_result.shape)
     
-    # Filter significant SNPs (lead SNPs)
+    # Filter significant SNPs
     df_lead_snps = df_gwas_result[df_gwas_result[args.colname_pval]<=args.pval_threshold].copy()
     count, lst_regions = 0, []
     
@@ -97,7 +95,6 @@ if __name__ == "__main__":
             lst_regions.append(df_region)
         
         # Remove the top SNP and any other lead SNPs in the window, and move on to the next one by pvalue
-        # Keep non-lead SNPs, since overlap regions are merged later
         mask_keep = (df_lead_snps[args.colname_pos]<position-args.window_size/2) | (df_lead_snps[args.colname_pos]>position+args.window_size/2)
         df_lead_snps = df_lead_snps[mask_keep].copy()
         
@@ -107,31 +104,19 @@ if __name__ == "__main__":
     if len(lst_regions) > 0:
         df_all_regions = pd.concat(lst_regions)
         df_all_regions.sort_values(by=[args.colname_chr, 'region_index', args.colname_pos], inplace=True)
-        # output_fn = f'{args.output_path}/{args.output_prefix}.regions'
-        # df_all_regions.to_csv(output_fn, sep='\t', index=False)
+        output_fn = f'{args.output_path}/{args.output_prefix}.regions'
+        df_all_regions.to_csv(output_fn, sep='\t', index=False)
 
         # Merge regions
         logging.info('# Merge overlapping regions and relabel region index')
-        output_fn = f'{args.output_path}/{args.output_prefix}.regions.overlap_merged'
-        
         n_after_merged, df_regions_merged = merge_regions(df_regions=df_all_regions,
                                                           colname_id=args.colname_id,
                                                           colname_index='region_index',
                                                           colname_pos=args.colname_pval,
                                                           colname_chr=args.colname_chr)
-        
         logging.info('# - N regions merged: %s' % n_after_merged)
-        if args.extra_pval_threshold !=-1:
-            # if need to filter SNPs by p value
-            logging.info('# Filter SNPs by extra p values threshold %s' % args.extra_pval_threshold)
-            df_regions_merged = df_regions_merged[df_regions_merged[args.colname_pval]<args.extra_pval_threshold].copy()
-
-        if args.get_zscore:
-            logging.info('# Calcualte z score (beta/se)')
-            df_regions_merged['z_score'] = df_regions_merged[args.colname_beta]/df_regions_merged[args.colname_se]
-            
-        logging.info('# Save regions to file')
-        df_regions_merged.to_csv(output_fn, sep='\t', index=False)
+        logging.info('# - Save merged regions')
+        df_regions_merged.to_csv(output_fn+'.overlap_merged', sep='\t', index=False)
     else: # No region found
         logging.info('# No region to output')
       

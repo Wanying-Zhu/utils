@@ -1,5 +1,5 @@
 '''
-Convert to phecode table
+Convert databricks pull of phecode to phecode (counts or binary) table
 
 Example call:
 python count_phecode.py --input_fn /data100t1/share/BioVU/phenos/official_release_0619/Below_PheCodes_20190531.csv \
@@ -41,6 +41,8 @@ def process_args():
     parser.add_argument('--output_prefix', type=str, default='output')
     parser.add_argument('--col_names', nargs='*', default=['GRID', 'PHEWAS_CODE'],
                         help='Column names of ID and phecode (ID column first, phecode column second)')
+    parser.add_argument('--delimiter', default=None, choices=[',', 'tab', 'space', 'whitespace'],
+                        help='Delimiter of the input file')
     
     args = parser.parse_args()
     
@@ -69,12 +71,24 @@ def process_args():
 
 args = process_args()
 
+# Parse delimiter
+if args.delimiter is not None:
+    dict_demilimter = {',':',', 'tab':'\t', 'space':' ', 'whitespace':'\s+'}
+    args.delimiter = dict_demilimter[args.delimiter]
+
 # Process phecode
 logging.info('\n# Load phecode file: '+ args.input_fn)
+
 if args.input_fn.endswith('.csv'):
-    df_phecode = pd.read_csv(args.input_fn, dtype=str)
+    if args.delimiter is not None:
+        df_phecode = pd.read_csv(args.input_fn, dtype=str, sep=args.delimiter)
+    else:
+        df_phecode = pd.read_csv(args.input_fn, dtype=str, sep='')
 else:
-    df_phecode = pd.read_csv(args.input_fn, dtype=str, sep='\t')
+    if args.delimiter is not None:
+        df_phecode = pd.read_csv(args.input_fn, dtype=str, sep=args.delimiter)
+    else:
+        df_phecode = pd.read_csv(args.input_fn, dtype=str, sep='\t')
     
 # print(df_phecode.head())
 logging.info('# - File size: (%s, %s)' % df_phecode.shape)
