@@ -228,7 +228,7 @@ def find_single_snp(snp_id, vcf_reference):
         # Need to compare ref and alt allele if this is a multiallelic site
         result = result.strip().split('\n')
         if len(result) == 1:
-            # Assuming the 3rd column (ID column) contains rsIDs
+            # Assuming the 3rd column (ID column) contains rsIDs in reference
             _, _, rsid, reference_ref, reference_alt, _ = result[0].split('\t', maxsplit=5)
             return rsid, reference_ref, reference_alt
         else:
