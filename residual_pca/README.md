@@ -24,8 +24,7 @@ python ./src/get_residual_pca.py \
 --covars AGE_AT_VISIT GENDER PC1 PC2 PC3 PC4 PC5 \
 --id_col LABID \
 --ignore_cols RRID VISIT INTERVIEW_DATE CHOL1 trig hdlc ldlcalc ADA2010_Cat ADA2010_DM BMI1 MED1 MED2 MED3 MED4 MED5 MED6 MED7 MED8 MED9 MED10 genotype_ID MEDS ON_STATIN "MS Label" \
---overwrite \
---threads 8
+--overwrite
 ```
 
 # Outputs
