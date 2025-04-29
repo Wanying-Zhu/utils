@@ -45,7 +45,7 @@ def process_args():
     parser.add_argument('--create_new_covar_file', action='store_true',
                         help='Merge of PCs selected by elbow method with other covariates, and save to a new file for other analysis')
     parser.add_argument('--cols_to_save', type=str, default=[], nargs='*',
-                        help='(Optional) If --create_new_covar_file is true, save these columns and covariates used to the new file')
+                        help='(Optional) If --create_new_covar_file is true, save the id column, number of PCs by elbow method and these columns to the new file')
     
     args = parser.parse_args()
 

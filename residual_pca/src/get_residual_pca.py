@@ -10,7 +10,8 @@ python /data100t1/home/wanying/lab_code/utils/residual_pca/src/get_residual_pca.
 --covar_file xxx \
 --id_col LABID \
 --ignore_cols RRID VISIT INTERVIEW_DATE CHOL1 trig hdlc ldlcalc ADA2010_Cat ADA2010_DM BMI1 MED1 MED2 MED3 MED4 MED5 MED6 MED7 MED8 MED9 MED10 genotype_ID MEDS ON_STATIN "MS Label" \
---overwrite
+--overwrite \
+--create_new_covar_file
 
 '''
 import pandas as pd
@@ -81,11 +82,16 @@ fig.savefig(plot_fn)
 
 # Save a new covariate file
 if args.create_new_covar_file:
-    fn_covar_with_pc = f'{args.output_path}/{args.output_prefix}.residual_pca_with_covar'
+    fn_covar_with_pc = os.path.join(args.output_path, f'{args.output_prefix}.residual_pca_with_covar')
+    # fn_covar_with_pc = f'{args.output_path}/{args.output_prefix}.residual_pca_with_covar'
     logging.info('# Save a new covariate file with PCs: '+fn_covar_with_pc)
+    
     cols_pc = [args.id_col] + [f'PC{i+1}' for i in range(k)]
     df_covar_pc = df_covars.merge(df_transformed[cols_pc], on=args.id_col)
-    df_covar_pc.to_csv(fn_covar_with_pc, index=False, sep='\t')
+    if len(args.cols_to_save) == 0:
+        df_covar_pc.to_csv(fn_covar_with_pc, index=False, sep='\t')
+    else: # Save desired columns and PCs
+        df_covar_pc[[args.id_col] + args.cols_to_save+[f'PC{i+1}' for i in range(k)]].to_csv(fn_covar_with_pc, index=False, sep='\t')
     
 logging.info('# DONE')
 
