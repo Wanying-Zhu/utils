@@ -39,7 +39,7 @@ def process_args():
     parser.add_argument('--scale', action='store_false', help='(True) Scale (unit variation) the data before PCA. Centering is implemented by PCA already')
     parser.add_argument('--verbose', action='store_true', help='Print more information. Default value is false')
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing output file if true. Default value is false')
-    parser.add_argument('--threads', default=1, type=int, help='Number of threads for multiprocessing. Default is none (1)')
+    # parser.add_argument('--threads', default=1, type=int, help='Number of threads for multiprocessing. Default is none (1)')
     parser.add_argument('--total_var_explained', type=float, default=0.9,
                         help='Get number of PCs by cumulative total variance explained (as a comparison to elbow method)')
     parser.add_argument('--create_new_covar_file', action='store_true',
