@@ -38,10 +38,6 @@ def process_args():
                         help='''Column names of pvalue in each input file, separated by space.
                         Or provide one value if column names are the same in all input files
                         ''')
-    parser.add_argument('--se_cols', nargs='+',
-                        help='''Column names of standard error in each input file, separated by space.
-                        Or provide one value if column names are the same in all input files
-                        ''')
     parser.add_argument('--beta_cols', nargs='+',
                         help='''Column names of beta in each input file, separated by space.
                         Or provide one value if column names are the same in all input files
@@ -89,7 +85,7 @@ def process_args():
         exit()
         
     # Check if number of column names is valid
-    for val in ['pval_cols', 'se_cols', 'beta_cols', 'shared_cols']:
+    for val in ['pval_cols', 'beta_cols', 'shared_cols']:
         if len(eval(f'args.{val}'))!=1 and len(eval(f'args.{val}'))!=len(args.input_files):
             logging.info('# Error: %s' % '--'+val)
             logging.info('# - Number of column names must match number of input files')

@@ -17,7 +17,6 @@ python ./src/meta_analysis.py \
 --output_prefix python_meta_output \
 --input_delimiter tab \
 --pval_cols pval \
---se_cols se \
 --beta_cols beta \
 --shared_cols protein \
 --sample_sizes 300 200 \
@@ -26,13 +25,13 @@ python ./src/meta_analysis.py \
 
 # Flags
 1. ```--input_files```: Input file names of regression results, separate by space. Files must have column headers, columns of pvalue and beta. Provide delimiter(s) or infer from the suffix
-2. ```--input_delimiter```: Delimiters of input file. Or provide one value if delimiters are the same in all input files. Use ',', 'tab', 'space' or other values
-3. ```--output_path```, ```--output_prefix```: Output path and prefix
+2. ```--input_delimiter```: (optional) Delimiters of input file. Or provide one value if delimiters are the same in all input files. Use ',', 'tab', 'space' or other values
+3. ```--output_path```, ```--output_prefix```: (optional) Output path and prefix
 4. ```--pval_cols```: Column names of pvalue in each input file, separated by space. Or provide one value if column names are the same in all input files
-5. ```--se_cols```, ```--beta_cols```: Column names of standard error and beta in each input file, separated by space. Or provide one value if column names are the same in all input files
+5. ```--beta_cols```: Column names of beta in each input file, separated by space. Or provide one value if column names are the same in all input files
 6. ```--sample_sizes```: Sample sizes of each regression (integer value). Or provide one value if column names are the same in all input files
-7. ```--shared_cols```: Names of shared ID column to merge the regression results, separate by space. Or provide one value if column names are the same in all input files
-8. ```--overwrite```: Overwrite existing output file if True. Default value is False
+7. ```--shared_cols```: Names of shared ID column to merge the regression results, separated by space. Or provide one value if column names are the same in all input files
+8. ```--overwrite```: (optional) Overwrite existing output file if True. Default value is False
 
 
    

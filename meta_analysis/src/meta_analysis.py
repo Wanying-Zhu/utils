@@ -17,7 +17,6 @@ python ./src/meta_analysis.py \
 --output_prefix python_meta_output \
 --input_delimiter tab \
 --pval_cols pval \
---se_cols se \
 --beta_cols beta \
 --shared_cols protein \
 --sample_sizes 300 200 \
@@ -102,7 +101,7 @@ else:
     df_result2 = pd.read_csv(args.input_files[1], sep=args.input_delimiter[1])
 
 # Get info from arguments
-for val in ['shared_cols', 'pval_cols', 'se_cols', 'beta_cols', 'sample_sizes']:
+for val in ['shared_cols', 'pval_cols', 'beta_cols', 'sample_sizes']:
     if len(eval(f'args.{val}'))==1:
         # Use [:-1] to remove 's' in each variable name
         exec(f'{val[:-1]}1 = args.{val}[0]')
