@@ -1,4 +1,4 @@
-Meta-analysis on two input files, sample size weighted
+Meta-analysis on two input files, sample size weighted. Need p-value and beta.
 
 Check ```./src/equivalent_metal_script/metal_script.sh``` for equivalent METAL settings.
 
