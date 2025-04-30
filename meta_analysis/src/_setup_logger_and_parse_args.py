@@ -26,7 +26,9 @@ def process_args():
     
     # Add some default arguments
     parser.add_argument('--input_files', nargs='+',
-                        help='Input file names of regression results, separate by space. Files must have column headers, columns of pvalue, beta and se')
+                        help='Input file names of regression results, separate by space. Files must have column headers, columns of pvalue, beta and se. Provide delimiter(s) or infer from the suffix')
+    parser.add_argument('--input_delimiter', nargs='*', default=[],
+                        help="Delimiters of input file. Or provide one value if delimiters are the same in all input files. Use ',', 'tab', 'space' or other values")
     parser.add_argument('--output_path', type=str, default='./',
                         help='Output path')
     parser.add_argument('--output_prefix', type=str, default='meta_output',
@@ -44,16 +46,25 @@ def process_args():
                         help='''Column names of beta in each input file, separate by space.
                         Or provide one value if column names are the same in all input files
                         ''')
+    parser.add_argument('--sample_sizes', nargs='+',
+                        help='''Sample sizes of each regression (integer value).
+                        Or provide one value if column names are the same in all input files
+                        ''')
     
     parser.add_argument('--shared_cols', nargs='+',
-                        help='''Names of shared column to merge the regression results, separate by space.
+                        help='''Names of shared ID column to merge the regression results, separate by space.
                         Or provide one value if column names are the same in all input files
                         ''')
     
     parser.add_argument('--overwrite', action='store_true',
                         help='Overwrite existing output file if True. Default value is False')
     args = parser.parse_args()
-    
+    # Convert delimiter(s) to valid string(s)
+    dict_delimiter = {'tab': '\t', 'space': ' '}
+    if len(args.input_delimiter) != 0:
+        for i in range(len(args.input_delimiter)):
+            args.input_delimiter[i] = dict_delimiter[args.input_delimiter[i]]
+            
     # ########## Sanity checks ##########
     if not os.path.isdir(args.output_path): # Create output folder if not exists
         print('# Create output path: ' + args.output_path)
