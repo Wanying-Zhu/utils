@@ -1,0 +1,16 @@
+
+# Call used:
+python ./src/meta_analysis.py --input_files ./example_data/result1.txt ./example_data/result2.txt --output_path ./example_output --output_prefix python_meta_output --input_delimiter tab --pval_cols pval --beta_cols beta --shared_cols protein --sample_sizes 300 200 --overwrite
+
+# Arguments used:
+# - input_files: ['./example_data/result1.txt', './example_data/result2.txt']
+# - input_delimiter: ['\t']
+# - output_path: ./example_output
+# - output_prefix: python_meta_output
+# - pval_cols: ['pval']
+# - beta_cols: ['beta']
+# - sample_sizes: ['300', '200']
+# - shared_cols: ['protein']
+# - overwrite: True
+# Total number of markers meta-analyzed: 329
+# Done
