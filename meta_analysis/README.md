@@ -34,4 +34,12 @@ python ./src/meta_analysis.py \
 8. ```--overwrite```: (optional) Overwrite existing output file if True. Default value is False
 
 
+# Output
+Available columns in ```*.meta_output.txt```:
+
+1. **MarkerName**: marker used to merge the two results. Eg. protein id
+2. **Weight**: If the marker is meta-analyzed, weight=sample size1 + sample size2. Otherwise, output the sample size of the corresponding analysis
+3. **Zscore**: Meta-analyzed z score, or z score of the corresponding analysis if the marker is only found in one analysis.
+4. **P-valu**e: Meta-analyzed p value, or p value of the corresponding analysis if the marker is only found in one analysis.
+5. **Direction**: '+' positive beta; '-' negative beta; '?' missing in the analysis
    

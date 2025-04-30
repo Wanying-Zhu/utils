@@ -1,5 +1,5 @@
 # This file contains a short description of the columns in the
-# meta-analysis summary file, named '../../example_output/METAL_meta_output1.tbl'
+# meta-analysis summary file, named '../example_output/METAL_meta_output1.tbl'
 
 # Marker    - this is the marker name
 # Allele1   - the first allele for this marker in the first file where it occurs
@@ -14,6 +14,6 @@
 # HetPVal   - P-value for heterogeneity statistic
 
 # Input for this meta-analysis was stored in the files:
-# --> Input File 1 : ../../example_data/result1.txt
-# --> Input File 2 : ../../example_data/result2.txt
+# --> Input File 1 : ../example_data/result1.txt
+# --> Input File 2 : ../example_data/result2.txt
 
