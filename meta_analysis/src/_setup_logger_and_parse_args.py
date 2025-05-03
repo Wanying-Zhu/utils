@@ -28,12 +28,16 @@ def process_args():
     parser.add_argument('--input_files', nargs='+',
                         help='Input file names of regression results, separated by space. Files must have column headers, columns of pvalue and beta. Provide delimiter(s) or infer from the suffix')
     parser.add_argument('--input_delimiter', nargs='*', default=[],
-                        help="Delimiters of input file. Or provide one value if delimiters are the same in all input files. Use ',', 'tab', 'space' or other values")
+                        help="(Optional) Delimiters of input file. Or provide one value if delimiters are the same in all input files. Use ',', 'tab', 'space' or other values")
     parser.add_argument('--output_path', type=str, default='./',
                         help='Output path')
     parser.add_argument('--output_prefix', type=str, default='meta_output',
                         help='Output prefix')
-
+    
+    parser.add_argument('--id_mapping_fn', nargs='?', default=None,
+                        help='''(Optional) A file with ID mapping scheme. Expect 3 columns:
+                             marker column in result 1, marker column in result 2, shared marker ids
+                             ''')
     parser.add_argument('--pval_cols', nargs='+',
                         help='''Column names of pvalue in each input file, separated by space.
                         Or provide one value if column names are the same in all input files
@@ -51,7 +55,8 @@ def process_args():
                         help='''Names of shared ID column to merge the regression results, separated by space.
                         Or provide one value if column names are the same in all input files
                         ''')
-    
+    parser.add_argument('--extra_cols_to_keep', nargs='*', type=str, default=[],
+                        help='Extra columns in the individual result to keep in the meta output')
     parser.add_argument('--overwrite', action='store_true',
                         help='Overwrite existing output file if True. Default value is False')
     args = parser.parse_args()
@@ -84,7 +89,7 @@ def process_args():
         logging.info('# Exit')
         exit()
         
-    # Check if number of column names is valid
+    # Check if the number of column names is valid
     for val in ['pval_cols', 'beta_cols', 'shared_cols']:
         if len(eval(f'args.{val}'))!=1 and len(eval(f'args.{val}'))!=len(args.input_files):
             logging.info('# Error: %s' % '--'+val)

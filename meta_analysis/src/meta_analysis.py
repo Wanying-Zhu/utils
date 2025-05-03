@@ -15,6 +15,7 @@ python ./src/meta_analysis.py \
 --input_files ${result1} ${result2} \
 --output_path ./example_output \
 --output_prefix python_meta_output \
+--extra_cols_to_keep meta_id OIDHT OID3072 \
 --input_delimiter tab \
 --pval_cols pval \
 --beta_cols beta \
@@ -35,9 +36,37 @@ import os
 from _setup_logger_and_parse_args import process_args
 
 # ########## Helper function ##########
-def meta(pvals, signs, sample_sizes):
+def load_results(input_delimiter:list, input_files:list):
     '''
-    Perform two-result meta-analysis, using Weighted Stouffer’s Z-score Meta-Analysis
+    Load regression results
+    
+    Params:
+    - input_delimiter: delimiters of input files in a list
+    - input_files: name of input files in a list
+
+    Return:
+    - Two dataframes of the results of regression 1 and regression 2
+    '''
+    if len(input_delimiter)==0: # Infer delimiter
+        if input_files[0].endswith('.csv'):
+            df_result1 = pd.read_csv(input_files[0])
+        else:
+            df_result1 = pd.read_csv(input_files[0], sep='\t')
+        if input_files[1].endswith('.csv'):
+            df_result2 = pd.read_csv(input_files[1])
+        else:
+            df_result2 = pd.read_csv(input_files[1], sep='\t')
+    elif len(input_delimiter)==1:
+        df_result1 = pd.read_csv(input_files[0], sep=input_delimiter[0])
+        df_result2 = pd.read_csv(input_files[1], sep=input_delimiter[0])
+    else:
+        df_result1 = pd.read_csv(input_files[0], sep=input_delimiter[0])
+        df_result2 = pd.read_csv(input_files[1], sep=input_delimiter[1])
+    return df_result1, df_result2
+    
+def meta_single_marker(pvals, signs, sample_sizes):
+    '''
+    Perform two-result meta-analysis on a single marker, using Weighted Stouffer’s Z-score Meta-Analysis
     Uses p-value and direction of effect, weighted according to sample size (SCHEME SAMPLESIZE in METAL)
     Params:
     - pvals, signs, sample_sizes: pval, sign of beta, sample size of regression 1 and 2
@@ -70,98 +99,138 @@ def meta(pvals, signs, sample_sizes):
     # print(f"Meta-analysis Z-score: {z_meta:.4f}")
     # print(f"Meta-analysis p-value: {p_meta:.4e}")
     return z_meta, p_meta
+
+def meta_all_markers(df_result1, df_result2, all_ids, merged_ids, output_fn):
+    '''
+    Run meta-analysis using all markers
+    Params:
+    - df_result1, df_result2: regression result 1 and 2 to be meta-analyzed
+    - all_ids: an array of all markers
+    - merged_ids: an array of shared markers between two results
+    - output_fn: output file to save meta-analyzed data
+    - 
+
+    Return:
+    - Save results to a file
+    '''
+    total_rows = len(all_ids)
+    n_meta_analized = 0
+    # Create output file
+    fh_output = open(output_fn, 'w')
+    fh_output.write('MarkerName\tWeight\tZscore\tP-value\tDirection\n') # Use the same column headers as METAL
+    dict_direction = {-1:'-', 1:'+'} # For directions
+    for i, marker in enumerate(all_ids):
+        if marker in merged_ids: # Shared marker, can do meta analysis
+            mask1, mask2 = df_result1[shared_col1]==marker, df_result2[shared_col2]==marker
+            pvals = [df_result1[mask1][pval_col1].iloc[0], df_result2[mask2][pval_col2].iloc[0]]
+            signs = [df_result1[mask1]['signs'].iloc[0], df_result2[mask2]['signs'].iloc[0]]
+            direction = np.where(np.array(signs)<0, '-', '+')
+            sample_sizes = [sample_size1, sample_size2]
+            z_meta, p_meta = meta_single_marker(pvals=pvals, signs=signs, sample_sizes=sample_sizes)
+            weight = sample_size1 + sample_size2 # Follow METAL output
+            fh_output.write(f"{marker}\t{weight}\t{z_meta}\t{p_meta}\t{''.join(direction)}\n")
+            n_meta_analized += 1
+        else:
+            # else do nothing, skip meta analysis and output directly
+            if marker in df_result1[shared_col1].values:
+                mask = df_result1[shared_col1]==marker
+                weight = sample_size1
+                pval = df_result1[mask][pval_col1].iloc[0]
+                sign = df_result1[mask]['signs'].iloc[0]
+                direction = [dict_direction[sign], '?']
+            else:
+                mask = df_result2[shared_col2]==marker
+                weight = sample_size2
+                pval = df_result2[mask][pval_col2].iloc[0]
+                sign = df_result2[mask]['signs'].iloc[0]
+                direction = ['?', dict_direction[sign]]
+            # Get z from pval
+            z = norm.isf(pval/2) * sign
+            fh_output.write(f"{marker}\t{weight}\t{z}\t{pval}\t{''.join(direction)}\n")
+        if i%50 ==0:
+            print(f'\r# Total markers processed: {i}/{total_rows}    ', end='', flush=True)
+    print(f'\r# Total markers processed: {i}/{total_rows}    ')
+    
 # ########## End of helper function ##########
 
 
 
-# ########## Get arguments from terminal ##########
-args = process_args()
-output_fn = os.path.join(args.output_path, args.output_prefix+'.meta_output.txt')
-
-if len(args.input_files)>2:
-    logging.info('# Error: This script only perfom two file meta-analysis for now')
-    logging.info('# Exit')
-    exit()
-
-# ########## Load regression results ##########
-if len(args.input_delimiter)==0: # Infer delimiter
-    if args.input_files[0].endswith('.csv'):
-        df_result1 = pd.read_csv(args.input_files[0])
-    else:
-        df_result1 = pd.read_csv(args.input_files[0], sep='\t')
-    if args.input_files[1].endswith('.csv'):
-        df_result2 = pd.read_csv(args.input_files[1])
-    else:
-        df_result2 = pd.read_csv(args.input_files[1], sep='\t')
-elif len(args.input_delimiter)==1:
-    df_result1 = pd.read_csv(args.input_files[0], sep=args.input_delimiter[0])
-    df_result2 = pd.read_csv(args.input_files[1], sep=args.input_delimiter[0])
-else:
-    df_result1 = pd.read_csv(args.input_files[0], sep=args.input_delimiter[0])
-    df_result2 = pd.read_csv(args.input_files[1], sep=args.input_delimiter[1])
-
-# Get info from arguments
-for val in ['shared_cols', 'pval_cols', 'beta_cols', 'sample_sizes']:
-    if len(eval(f'args.{val}'))==1:
-        # Use [:-1] to remove 's' in each variable name
-        exec(f'{val[:-1]}1 = args.{val}[0]')
-        exec(f'{val[:-1]}2 = args.{val}[0]')
-    else:
-        exec(f'{val[:-1]}1=args.{val}[0]')
-        exec(f'{val[:-1]}2 = args.{val}[1]')
-sample_size1, sample_size2 = int(sample_size1), int(sample_size2)
-
-# Merge the two results by shared column, only run meta-analysis on these rows
-mask = df_result1[shared_col1].isin(df_result2[shared_col2])
-merged_ids = list(df_result1[mask][shared_col1])
-
-# All markers to process (such as proteins)
-all_ids = set(list(df_result1[shared_col1]) + list(df_result2[shared_col2]))
-
-# Need columns: pval, se, beta and sample size
-df_result1['signs'] = np.sign(df_result1[beta_col1]) 
-df_result2['signs'] = np.sign(df_result2[beta_col2])
-
-total_rows = len(all_ids)
-n_meta_analized = 0
-# Create output file
-fh_output = open(output_fn, 'w')
-fh_output.write('MarkerName\tWeight\tZscore\tP-value\tDirection\n') # Use the same column header as METAL
-dict_direction = {-1:'-', 1:'+'} # For direction
-for i, marker in enumerate(all_ids):
-    if marker in merged_ids: # Shared marker, can do meta analysis
-        mask1, mask2 = df_result1[shared_col1]==marker, df_result2[shared_col2]==marker
-        pvals = [df_result1[mask1][pval_col1].iloc[0], df_result2[mask2][pval_col2].iloc[0]]
-        signs = [df_result1[mask1]['signs'].iloc[0], df_result2[mask2]['signs'].iloc[0]]
-        direction = np.where(np.array(signs)<0, '-', '+')
-        sample_sizes = [sample_size1, sample_size2]
-        z_meta, p_meta = meta(pvals=pvals, signs=signs, sample_sizes=sample_sizes)
-        weight = sample_size1 + sample_size2 # Follow METAL output
-        fh_output.write(f"{marker}\t{weight}\t{z_meta}\t{p_meta}\t{''.join(direction)}\n")
-        n_meta_analized += 1
-    else:
-        # else do nothing, skip meta analysis and output directly
-        if marker in df_result1[shared_col1].values:
-            mask = df_result1[shared_col1]==marker
-            weight = sample_size1
-            pval = df_result1[mask][pval_col1].iloc[0]
-            sign = df_result1[mask]['signs'].iloc[0]
-            direction = [dict_direction[sign], '?']
+if __name__=='__main__':
+    # ########## Get arguments from terminal ##########
+    args = process_args()
+    output_fn = os.path.join(args.output_path, args.output_prefix+'.meta_output.txt')
+    
+    if len(args.input_files)>2:
+        logging.info('# Error: This script only perfom two file meta-analysis for now')
+        logging.info('# Exit')
+        exit()
+    
+    # ########## Load regression results ##########
+    df_result1, df_result2 = load_results(input_delimiter=args.input_delimiter,
+                                          input_files=args.input_files)
+    
+    # Get info from arguments
+    for val in ['shared_cols', 'pval_cols', 'beta_cols', 'sample_sizes']:
+        if len(eval(f'args.{val}'))==1:
+            # Use [:-1] to remove 's' in each variable name
+            exec(f'{val[:-1]}1 = args.{val}[0]')
+            exec(f'{val[:-1]}2 = args.{val}[0]')
         else:
-            mask = df_result2[shared_col2]==marker
-            weight = sample_size2
-            pval = df_result2[mask][pval_col2].iloc[0]
-            sign = df_result2[mask]['signs'].iloc[0]
-            direction = ['?', dict_direction[sign]]
-        # Get z from pval
-        z = norm.isf(pval/2) * sign
-        fh_output.write(f"{marker}\t{weight}\t{z}\t{pval}\t{''.join(direction)}\n")
-    if i%50 ==0:
-        print(f'\r# Total markers processed: {i}/{total_rows}    ', end='', flush=True)
-print(f'\r# Total markers processed: {i}/{total_rows}    ')
-logging.info('# Total number of markers meta-analyzed: %s' % n_meta_analized)
-logging.info('# Done')
-fh_output.close()       
+            exec(f'{val[:-1]}1=args.{val}[0]')
+            exec(f'{val[:-1]}2 = args.{val}[1]')
+    sample_size1, sample_size2 = int(sample_size1), int(sample_size2)
+    
+    # Merge the two results by shared column, only run meta-analysis on these rows
+    mask = df_result1[shared_col1].isin(df_result2[shared_col2])
+    merged_ids = list(df_result1[mask][shared_col1])
+    
+    # All markers to process (such as proteins)
+    all_ids = set(list(df_result1[shared_col1]) + list(df_result2[shared_col2]))
+    
+    # Need columns: pval, se, beta and sample size
+    df_result1['signs'] = np.sign(df_result1[beta_col1]) 
+    df_result2['signs'] = np.sign(df_result2[beta_col2])
+    
+    total_rows = len(all_ids)
+    n_meta_analized = 0
+    # Create output file
+    fh_output = open(output_fn, 'w')
+    fh_output.write('MarkerName\tWeight\tZscore\tP-value\tDirection\n') # Use the same column header as METAL
+    dict_direction = {-1:'-', 1:'+'} # For directions
+    for i, marker in enumerate(all_ids):
+        if marker in merged_ids: # Shared marker, can do meta analysis
+            mask1, mask2 = df_result1[shared_col1]==marker, df_result2[shared_col2]==marker
+            pvals = [df_result1[mask1][pval_col1].iloc[0], df_result2[mask2][pval_col2].iloc[0]]
+            signs = [df_result1[mask1]['signs'].iloc[0], df_result2[mask2]['signs'].iloc[0]]
+            direction = np.where(np.array(signs)<0, '-', '+')
+            sample_sizes = [sample_size1, sample_size2]
+            z_meta, p_meta = meta_single_marker(pvals=pvals, signs=signs, sample_sizes=sample_sizes)
+            weight = sample_size1 + sample_size2 # Follow METAL output
+            fh_output.write(f"{marker}\t{weight}\t{z_meta}\t{p_meta}\t{''.join(direction)}\n")
+            n_meta_analized += 1
+        else:
+            # else do nothing, skip meta analysis and output directly
+            if marker in df_result1[shared_col1].values:
+                mask = df_result1[shared_col1]==marker
+                weight = sample_size1
+                pval = df_result1[mask][pval_col1].iloc[0]
+                sign = df_result1[mask]['signs'].iloc[0]
+                direction = [dict_direction[sign], '?']
+            else:
+                mask = df_result2[shared_col2]==marker
+                weight = sample_size2
+                pval = df_result2[mask][pval_col2].iloc[0]
+                sign = df_result2[mask]['signs'].iloc[0]
+                direction = ['?', dict_direction[sign]]
+            # Get z from pval
+            z = norm.isf(pval/2) * sign
+            fh_output.write(f"{marker}\t{weight}\t{z}\t{pval}\t{''.join(direction)}\n")
+        if i%50 ==0:
+            print(f'\r# Total markers processed: {i}/{total_rows}    ', end='', flush=True)
+    print(f'\r# Total markers processed: {i}/{total_rows}    ')
+    logging.info('# Total number of markers meta-analyzed: %s' % n_meta_analized)
+    logging.info('# Done')
+    fh_output.close()       
 
 
 
