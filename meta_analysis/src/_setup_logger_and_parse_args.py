@@ -35,8 +35,10 @@ def process_args():
                         help='Output prefix')
     
     parser.add_argument('--id_mapping_fn', nargs='?', default=None,
-                        help='''(Optional) A file with ID mapping scheme. Expect 3 columns:
-                             marker column in result 1, marker column in result 2, shared marker ids
+                        help='''(Optional) Needed when marker IDs do not match in results 1 and 2. 
+                                A file with an ID mapping scheme. Expects 3 columns:
+                                (1) marker ID column in result 1, (2) marker ID column in result 2, (3) shared marker IDs.
+                                Marker ID columns of results 1 and 2 are provided by --marker_cols
                              ''')
     parser.add_argument('--pval_cols', nargs='+',
                         help='''Column names of pvalue in each input file, separated by space.
@@ -51,9 +53,18 @@ def process_args():
                         Or provide one value if column names are the same in all input files
                         ''')
     
+    # parser.add_argument('--shared_cols', nargs='+',
+    #                     help='''Names of shared ID column to merge the regression results, separated by space.
+    #                     Or provide one value if column names are the same in all input files
+    #                     ''')
     parser.add_argument('--shared_cols', nargs='+',
-                        help='''Names of shared ID column to merge the regression results, separated by space.
-                        Or provide one value if column names are the same in all input files
+                        help='''Names of shared marker ID column to merge the regression results, separated by space.
+                        Or provide one value if column names are the same in all input files.
+                        If the ID columns do not match, then must supply a file via --id_mapping_fn.
+                        This file should contain at least 3 columns:
+                        (1) An ID column of result 1: with the same column header as the marker ID column in result 1; 
+                        (2) An ID column of result 2: with the same column header as the marker column in result 2; 
+                        (3) An ID column for meta analysis: No missing value is allowed, a common ID scheme between result 1 and 2
                         ''')
     parser.add_argument('--extra_cols_to_keep', nargs='*', type=str, default=[],
                         help='Extra columns in the individual result to keep in the meta output')

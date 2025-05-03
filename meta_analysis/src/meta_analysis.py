@@ -19,7 +19,7 @@ python ./src/meta_analysis.py \
 --input_delimiter tab \
 --pval_cols pval \
 --beta_cols beta \
---shared_cols protein \
+--marker_cols protein \
 --sample_sizes 300 200 \
 --overwrite
 '''
