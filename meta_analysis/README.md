@@ -26,14 +26,14 @@ python ./src/meta_analysis.py \
 
 # Example in kids project
 # Map marker IDs in reuslts 1 and 2 via file --id_mapping_fn, also save extra columns x, y, z in the output
-# The ID mapping file is provided with the code in ../data/cchc_proteomics_metaID.txt
+# The ID mapping file is provided with the code in ./data/cchc_proteomics_bathc1_2_metaID_5511proteins.txt
 result1=./example_data/result1.extra_cols.txt
 result2=./example_data/result2.extra_cols.txt
 python ./src/meta_analysis.py \
 --input_files ${result1} ${result2} \
 --output_path ./example_output \
 --output_prefix python_meta_output.extra_cols \
---id_mapping_fn ./data/cchc_proteomics_metaID.txt \
+--id_mapping_fn ./data/cchc_proteomics_bathc1_2_metaID_5511proteins.txt \
 --id_mapping_cols OID3072 OIDHT meta_id \
 --extra_cols_to_keep meta_id OID3072 OIDHT protein \
 --input_delimiter tab \
