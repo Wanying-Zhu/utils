@@ -26,7 +26,10 @@ def process_args():
     
     # Add some default arguments
     parser.add_argument('--input_files', nargs='+',
-                        help='Input file names of regression results, separated by space. Files must have column headers, columns of pvalue and beta. Provide delimiter(s) or infer from the suffix')
+                        help='''Input file names of regression results, separated by space. 
+                        Files must have column headers, columns of pvalue and beta. 
+                        Provide delimiter(s) or infer from the suffix
+                        ''')
     parser.add_argument('--input_delimiter', nargs='*', default=[],
                         help="(Optional) Delimiters of input file. Or provide one value if delimiters are the same in all input files. Use ',', 'tab', 'space' or other values")
     parser.add_argument('--output_path', type=str, default='./',
@@ -34,12 +37,22 @@ def process_args():
     parser.add_argument('--output_prefix', type=str, default='meta_output',
                         help='Output prefix')
     
-    parser.add_argument('--id_mapping_fn', nargs='?', default=None,
+    parser.add_argument('--id_mapping_fn', nargs='?', default=None, type=str,
                         help='''(Optional) Needed when marker IDs do not match in results 1 and 2. 
                                 A file with an ID mapping scheme. Expects 3 columns:
-                                (1) marker ID column in result 1, (2) marker ID column in result 2, (3) shared marker IDs.
-                                Marker ID columns of results 1 and 2 are provided by --marker_cols
+                                (1) Marker ID column in result 1, 
+                                (2) Marker ID column in result 2, 
+                                (3) A shared marker IDs. 
+                                Column names of this file are provided by --id_mapping_cols
                              ''')
+    parser.add_argument('--id_mapping_cols', nargs='+', default=[],
+                        help='''(Optional) Column names in file --id_mapping_fn. 
+                        The 1st, 2nd and 3rd values refer to column names corresponding to these columns in --id_mapping_fn:  
+                        (1) ID column map to result 1, (2) ID column map to result 2 and (3) shared ID column 
+                        If omitted, then assume the ID columns are the same as --marker_cols, 
+                        and use meata_id for the shared ID column 
+                        ''')
+    
     parser.add_argument('--pval_cols', nargs='+',
                         help='''Column names of pvalue in each input file, separated by space.
                         Or provide one value if column names are the same in all input files
@@ -52,12 +65,7 @@ def process_args():
                         help='''Sample sizes of each regression (integer value).
                         Or provide one value if column names are the same in all input files
                         ''')
-    
-    # parser.add_argument('--shared_cols', nargs='+',
-    #                     help='''Names of shared ID column to merge the regression results, separated by space.
-    #                     Or provide one value if column names are the same in all input files
-    #                     ''')
-    parser.add_argument('--shared_cols', nargs='+',
+    parser.add_argument('--marker_cols', nargs='+',
                         help='''Names of shared marker ID column to merge the regression results, separated by space.
                         Or provide one value if column names are the same in all input files.
                         If the ID columns do not match, then must supply a file via --id_mapping_fn.
@@ -67,7 +75,7 @@ def process_args():
                         (3) An ID column for meta analysis: No missing value is allowed, a common ID scheme between result 1 and 2
                         ''')
     parser.add_argument('--extra_cols_to_keep', nargs='*', type=str, default=[],
-                        help='Extra columns in the individual result to keep in the meta output')
+                        help='Extra columns in the individual result (and ID mapping file if provided) to keep in the meta output')
     parser.add_argument('--overwrite', action='store_true',
                         help='Overwrite existing output file if True. Default value is False')
     args = parser.parse_args()
@@ -101,11 +109,21 @@ def process_args():
         exit()
         
     # Check if the number of column names is valid
-    for val in ['pval_cols', 'beta_cols', 'shared_cols']:
+    for val in ['pval_cols', 'beta_cols', 'marker_cols']:
         if len(eval(f'args.{val}'))!=1 and len(eval(f'args.{val}'))!=len(args.input_files):
             logging.info('# Error: %s' % '--'+val)
             logging.info('# - Number of column names must match number of input files')
             logging.info('# - Or provide one value if column names are the same in all input files\n')
+            logging.info('# Exit')
+            exit()
+
+    # If an ID mapping file is provided, check if column names of this file is provided
+    if args.id_mapping_fn is not None:
+        if len(args.id_mapping_cols)!=0 and len(args.id_mapping_cols)!=len(args.input_files)+1:
+            # The column names can be omitted, or must be the same number as imput files + 1 (extra shared ID column)
+            logging.info('# Error: %s' % '--id_mapping_fn')
+            logging.info('# - Number of column names must match number of input files+1')
+            logging.info('# - Or omit and use the column names are the same as --marker_cols and meta_id for shared ID column\n')
             logging.info('# Exit')
             exit()
     

@@ -163,7 +163,7 @@ def run_single_regression(df_data, phenotype, covars, condition, fn_output, perm
         elif model_type=='mixed':
             # exog_re=X['const'] can be skipped (random intercept is default setting)
             model = sm.MixedLM(y, X, groups=df_data[args.group_col], exog_re=X['const'], missing='drop')
-            # Supply two optimization method to avoid not converge errror if needed: model.fit(method=["powell", "lbfgs"]) 
+            # Supply two optimization method to avoid not converge error if needed: model.fit(method=["powell", "lbfgs"]) 
         results = model.fit()
         pval = results.pvalues[args.condition]
         beta = results.params[args.condition]
