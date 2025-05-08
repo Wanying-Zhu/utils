@@ -172,9 +172,15 @@ def run_single_regression(df_data, phenotype, covars, condition, fn_output, perm
         if not args.group_col:
             n, p, r2, r2_adj= results.nobs, results.df_model, results.rsquared, results.rsquared_adj
         else: # Some attributes only work in OLS linear regression
-            n, p, r2, r2_adj= len(X), None, None, None
+            # Include number of groups
+            n_groups, n, p, r2, r2_adj= results.model.n_groups, len(X), None, None, None
         with open(fn_model, 'a') as fh_model:
-            fh_model.write(f'{phenotype}\t{n}\t{p}\t{r2}\t{r2_adj}\n')
+            if not args.group_col:
+                fh_model.write(f'{phenotype}\t{n}\t{p}\t{r2}\t{r2_adj}\n')
+            else:
+                # Include extra info: number of groups
+                # 'phenotype\tN_observations\tN_groups\tN_predictors\tR2\tAdjusted_R2\n'
+                fh_model.write(f'{phenotype}\t{n}\t{n_groups}\t{p}\t{r2}\t{r2_adj}\n')
                         
         # Get info of the model
         if get_residual: # Save residuals if needed 
@@ -306,7 +312,11 @@ if __name__=='__main__':
     # Save model params (number of observations, R2, etc.)
     fn_model = os.path.join(args.output_path, args.output_prefix+'.model')
     with open(fn_model, 'w') as fh_model: # Write header line
-        fh_model.write('phenotype\tN_observations\tN_predictors\tR2\tAdjusted_R2\n')
+        if not args.group_col:
+            fh_model.write('phenotype\tN_observations\tN_predictors\tR2\tAdjusted_R2\n')
+        else:
+            # Include extra info: number of groups
+            fh_model.write('phenotype\tN_observations\tN_groups\tN_predictors\tR2\tAdjusted_R2\n')
         
     # Save residual if needed
     fn_residual = os.path.join(args.output_path, args.output_prefix+'.residual')

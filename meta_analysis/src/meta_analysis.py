@@ -347,8 +347,8 @@ if __name__=='__main__':
                 out_line = f"{marker}\t{weight}\t{z}\t{pval}\t{''.join(direction)}\n"
             fh_output.write(out_line)
         if i%50 ==0:
-            print(f'\r# Total markers processed: {i}/{total_rows}    ', end='', flush=True)
-    print(f'\r# Total markers processed: {i}/{total_rows}    ')
+            print(f'\r# Total markers processed: {i+1}/{total_rows}    ', end='', flush=True)
+    print(f'\r# Total markers processed: {i+1}/{total_rows}    ')
     logging.info('# Total number of markers meta-analyzed: %s' % n_meta_analized)
     logging.info('# Done')
     fh_output.close()       
