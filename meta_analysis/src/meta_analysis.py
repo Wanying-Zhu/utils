@@ -348,7 +348,8 @@ if __name__=='__main__':
             fh_output.write(out_line)
         if i%50 ==0:
             print(f'\r# Total markers processed: {i+1}/{total_rows}    ', end='', flush=True)
-    print(f'\r# Total markers processed: {i+1}/{total_rows}    ')
+    # print(f'\r# Total markers processed: {i+1}/{total_rows}    ')
+    logging.info('\r# Total markers processed: %s/%s' % (i+1, total_rows))
     logging.info('# Total number of markers meta-analyzed: %s' % n_meta_analized)
     logging.info('# Done')
     fh_output.close()       
