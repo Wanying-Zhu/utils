@@ -42,13 +42,15 @@ def process_args():
                                 A file with an ID mapping scheme. Expects 3 columns:
                                 (1) Marker ID column in result 1, 
                                 (2) Marker ID column in result 2, 
-                                (3) A shared marker IDs. 
+                                (3) Shared marker IDs. 
                                 Column names of this file are provided by --id_mapping_cols
                              ''')
     parser.add_argument('--id_mapping_cols', nargs='+', default=[],
                         help='''(Optional) Column names in file --id_mapping_fn. 
                         The 1st, 2nd and 3rd values refer to column names corresponding to these columns in --id_mapping_fn:  
-                        (1) ID column map to result 1, (2) ID column map to result 2 and (3) shared ID column 
+                        (1) ID column map to result 1,
+                        (2) ID column map to result 2, and 
+                        (3) shared ID column. 
                         If omitted, then assume the ID columns are the same as --marker_cols, 
                         and use meata_id for the shared ID column 
                         ''')
@@ -72,7 +74,6 @@ def process_args():
                         This file should contain at least 3 columns:
                         (1) An ID column of result 1: with the same column header as the marker ID column in result 1; 
                         (2) An ID column of result 2: with the same column header as the marker column in result 2; 
-                        (3) An ID column for meta analysis: No missing value is allowed, a common ID scheme between result 1 and 2
                         ''')
     parser.add_argument('--extra_cols_to_keep', nargs='*', type=str, default=[],
                         help='Extra columns in the individual result (and ID mapping file if provided) to keep in the meta output')

@@ -61,7 +61,7 @@ python ./src/meta_analysis.py \
 7. ```--pval_cols```: Column names of pvalue in each input file, separated by space. Or provide one value if column names are the same in all input files
 8. ```--beta_cols```: Column names of beta in each input file, separated by space. Or provide one value if column names are the same in all input files
 9. ```--sample_sizes```: Sample sizes of each regression (integer value). Or provide one value if column names are the same in all input files
-10. ```--shared_cols```: Names of shared ID column to merge the regression results, separated by space. Or provide one value if column names are the same in all input files
+10. ```--marker_cols```: Names of shared ID column to merge the regression results, separated by space. Or provide one value if column names are the same in all input files
 11. ```--extra_cols_to_keep```: Extra columns in the individual result (and ID mapping file if provided) to keep in the meta output
 12. ```--overwrite```: (optional) Overwrite existing output file if True. Default value is False
 

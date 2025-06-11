@@ -281,7 +281,8 @@ if __name__=='__main__':
             headers = fh.readline() # Skip header line
             if args.inplace:
                 # Re-use the headers as the original input file if args.inplace is true
-                fh_output.write(headers.strip()+args.delimiter+'rsID'+args.delimiter+'ref_allele_in_reference'+args.delimiter+'alt_allele_in_reference\n')
+                # Cannot use ',' when write inplace, since the alleles might contain '',
+                fh_output.write('\t'.join(headers.strip().split(args.delimiter))+'\trsID\tref_allele_in_reference\talt_allele_in_reference\n')
         count = 0
         for line in fh:
             snp_id = line.strip().split(args.delimiter)[args.snp_col_indx]
@@ -297,7 +298,7 @@ if __name__=='__main__':
             if not args.inplace:
                 fh_output.write(f'{snp_id}\t{returned_id}\t{returned_ref}\t{returned_alt}\n')
             else:
-                fh_output.write(line.strip()+args.delimiter+returned_id+args.delimiter+returned_ref+args.delimiter+returned_alt+'\n')
+                fh_output.write('\t'.join(line.strip().split(args.delimiter))+f'\t{returned_id}\t{returned_ref}\t{returned_alt}\n')
             count += 1
             if count%10==0:
                 print(f'\r# N SNPs processed: {count}    ', end='', flush=True)

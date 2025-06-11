@@ -269,6 +269,7 @@ if __name__=='__main__':
         df_data = pd.read_csv(args.input_file)
     else:
         df_data = pd.read_csv(args.input_file, sep='\t') # Assume tab is the delimiter if the input is not a .csv file
+    
     logging.info('# - Input file: (%s,%s)' % df_data.shape)
     # Drop ignored columns to avoid NA, and remove missing values
     for col in args.ignore_cols:
@@ -286,7 +287,7 @@ if __name__=='__main__':
         logging.info('# - Covariate file: (%s,%s)' % df_covar.shape)
         
         # Merge data with covariates
-        df_data = df_data.merge(df_covar, on=args.id_col)
+        df_data = df_data.merge(df_covar, on=args.id_col, suffixes=('_x', None))
     
     # Check if covariates, phenotype, and condition columns exist in the input and covariate files
     for val in args.covars + [args.condition]:
