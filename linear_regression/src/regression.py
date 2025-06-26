@@ -146,88 +146,88 @@ def run_single_regression(df_data, phenotype, covars, condition, fn_output, perm
     Return:
     - Write pval, se, beta to output file fh_output
     '''
-    try:
-        predictors = list(set([condition] + covars)) # In case there are duplicate covariates
+    # try:
+    predictors = list(set([condition] + covars)) # In case there are duplicate covariates
+    
+    # Drop missing values by condition, phenotype (and group column if use mixed effect model)
+    if not args.group_col:
+        df_data = df_data.dropna(subset=predictors).copy()
+    else:
+        df_data = df_data.dropna(subset=predictors+[args.group_col]).copy()
         
-        # Drop missing values by condition, phenotype (and group column if use mixed effect model)
+    X = df_data[predictors].copy()
+    X['const'] = 1 # Add a constant column for interception
+    y = df_data[phenotype]
+    if model_type=='ols':
+        model = sm.OLS(y, X, missing='drop')
+    elif model_type=='mixed':
+        # exog_re=X['const'] can be skipped (random intercept is default setting)
+        model = sm.MixedLM(y, X, groups=df_data[args.group_col], exog_re=X['const'], missing='drop')
+        # Supply two optimization method to avoid not converge error if needed: model.fit(method=["powell", "lbfgs"]) 
+    results = model.fit()
+    pval = results.pvalues[args.condition]
+    beta = results.params[args.condition]
+    se = results.bse[args.condition]
+    # Get model parameters: Number of observations, number of predictors (regressors), R2, adjusted r2
+    if not args.group_col:
+        n, p, r2, r2_adj= results.nobs, results.df_model, results.rsquared, results.rsquared_adj
+    else: # Some attributes only work in OLS linear regression
+        # Include number of groups
+        n_groups, n, p, r2, r2_adj= results.model.n_groups, len(X), None, None, None
+    with open(fn_model, 'a') as fh_model:
         if not args.group_col:
-            df_data = df_data.dropna(subset=predictors).copy()
+            fh_model.write(f'{phenotype}\t{n}\t{p}\t{r2}\t{r2_adj}\n')
         else:
-            df_data = df_data.dropna(subset=predictors+[args.group_col]).copy()
-            
-        X = df_data[predictors].copy()
-        X['const'] = 1 # Add a constant column for interception
-        y = df_data[phenotype]
-        if model_type=='ols':
-            model = sm.OLS(y, X, missing='drop')
-        elif model_type=='mixed':
-            # exog_re=X['const'] can be skipped (random intercept is default setting)
-            model = sm.MixedLM(y, X, groups=df_data[args.group_col], exog_re=X['const'], missing='drop')
-            # Supply two optimization method to avoid not converge error if needed: model.fit(method=["powell", "lbfgs"]) 
-        results = model.fit()
-        pval = results.pvalues[args.condition]
-        beta = results.params[args.condition]
-        se = results.bse[args.condition]
-        # Get model parameters: Number of observations, number of predictors (regressors), R2, adjusted r2
-        if not args.group_col:
-            n, p, r2, r2_adj= results.nobs, results.df_model, results.rsquared, results.rsquared_adj
-        else: # Some attributes only work in OLS linear regression
-            # Include number of groups
-            n_groups, n, p, r2, r2_adj= results.model.n_groups, len(X), None, None, None
-        with open(fn_model, 'a') as fh_model:
-            if not args.group_col:
-                fh_model.write(f'{phenotype}\t{n}\t{p}\t{r2}\t{r2_adj}\n')
-            else:
-                # Include extra info: number of groups
-                # 'phenotype\tN_observations\tN_groups\tN_predictors\tR2\tAdjusted_R2\n'
-                fh_model.write(f'{phenotype}\t{n}\t{n_groups}\t{p}\t{r2}\t{r2_adj}\n')
-                        
-        # Get info of the model
-        if get_residual: # Save residuals if needed 
-            with open(fn_residual, 'a') as fh_resid:
-                fh_resid.write(phenotype+'\t'+'\t'.join([str(val) for val in results.resid])+'\n')
-        
-        with open(fn_output, 'a') as fh_output:
-            if not args.permute:
-                fh_output.write(f'{phenotype}\t{args.condition}\t{pval}\t{beta}\t{se}\n')
-            else: # Permutation!
-                pvals, betas, ses = np.zeros(args.permute), np.zeros(args.permute), np.zeros(args.permute) # Store permutation results
-                for i in range(args.permute):
-                    if not indx:
-                        if verbose: print(f'\r# - Permutation run {phenotype}: {i+1}/{args.permute}        ', end='', flush=True)
-                    else:
-                        if verbose: print(f'\r# - Permutation run ({indx}) {phenotype}: {i+1}/{args.permute}        ', end='', flush=True)
-                        
-                    y_permute = np.random.permutation(df_data[phenotype])
-                    if model_type=='ols':
-                        model_permute = sm.OLS(y_permute, X, missing='drop')
-                    elif model_type=='mixed':
-                        model_permute = sm.MixedLM(y_permute, X, missing='drop', groups=df_data[args.group_col], exog_re=X['const'])
-                    results_permute = model_permute.fit()
-                    pvals[i] = results_permute.pvalues[condition]
-                    betas[i] = results_permute.params[condition]
-                    ses[i] = results_permute.bse[condition]
+            # Include extra info: number of groups
+            # 'phenotype\tN_observations\tN_groups\tN_predictors\tR2\tAdjusted_R2\n'
+            fh_model.write(f'{phenotype}\t{n}\t{n_groups}\t{p}\t{r2}\t{r2_adj}\n')
                     
-                # Calculate the p value from permutation, by comparing permutation coefficients with original coefficient
-                pval_permutation = np.sum(np.abs(betas)>=np.abs(beta)) / args.permute
-                # pval_permutation = np.sum(pvals<pval) / args.permute # Not recommended!
-                fh_output.write(f'{phenotype}\t{condition}\t{pval}\t{beta}\t{se}\t{pval_permutation}\n')
+    # Get info of the model
+    if get_residual: # Save residuals if needed 
+        with open(fn_residual, 'a') as fh_resid:
+            fh_resid.write(phenotype+'\t'+'\t'.join([str(val) for val in results.resid])+'\n')
+    
+    with open(fn_output, 'a') as fh_output:
+        if not args.permute:
+            fh_output.write(f'{phenotype}\t{args.condition}\t{pval}\t{beta}\t{se}\n')
+        else: # Permutation!
+            pvals, betas, ses = np.zeros(args.permute), np.zeros(args.permute), np.zeros(args.permute) # Store permutation results
+            for i in range(args.permute):
+                if not indx:
+                    if verbose: print(f'\r# - Permutation run {phenotype}: {i+1}/{args.permute}        ', end='', flush=True)
+                else:
+                    if verbose: print(f'\r# - Permutation run ({indx}) {phenotype}: {i+1}/{args.permute}        ', end='', flush=True)
+                    
+                y_permute = np.random.permutation(df_data[phenotype])
+                if model_type=='ols':
+                    model_permute = sm.OLS(y_permute, X, missing='drop')
+                elif model_type=='mixed':
+                    model_permute = sm.MixedLM(y_permute, X, missing='drop', groups=df_data[args.group_col], exog_re=X['const'])
+                results_permute = model_permute.fit()
+                pvals[i] = results_permute.pvalues[condition]
+                betas[i] = results_permute.params[condition]
+                ses[i] = results_permute.bse[condition]
                 
-                # Save permutation p values, betas, ses to separate files
-                with open(fn_permute_pvals, 'a') as fh_permute_pvals:
-                    fh_permute_pvals.write(f'{phenotype}\t{condition}\t')
-                    fh_permute_pvals.write('\t'.join([str(v) for v in pvals])+'\n')
-                    
-                with open(fn_permute_betas, 'a') as fh_permute_betas:
-                    fh_permute_betas.write(f'{phenotype}\t{condition}\t')
-                    fh_permute_betas.write('\t'.join([str(v) for v in betas])+'\n')
-                    
-                with open(fn_permute_ses, 'a') as fh_permute_ses:
-                    fh_permute_ses.write(f'{phenotype}\t{condition}\t')
-                    fh_permute_ses.write('\t'.join([str(v) for v in ses])+'\n')         
-        if verbose: print(results.summary())
-    except:
-        logging.info('# - Ignore column: %s' % phenotype) # Ignore columns that can not be run (usually they are ID columns which do not contain numbers)
+            # Calculate the p value from permutation, by comparing permutation coefficients with original coefficient
+            pval_permutation = np.sum(np.abs(betas)>=np.abs(beta)) / args.permute
+            # pval_permutation = np.sum(pvals<pval) / args.permute # Not recommended!
+            fh_output.write(f'{phenotype}\t{condition}\t{pval}\t{beta}\t{se}\t{pval_permutation}\n')
+            
+            # Save permutation p values, betas, ses to separate files
+            with open(fn_permute_pvals, 'a') as fh_permute_pvals:
+                fh_permute_pvals.write(f'{phenotype}\t{condition}\t')
+                fh_permute_pvals.write('\t'.join([str(v) for v in pvals])+'\n')
+                
+            with open(fn_permute_betas, 'a') as fh_permute_betas:
+                fh_permute_betas.write(f'{phenotype}\t{condition}\t')
+                fh_permute_betas.write('\t'.join([str(v) for v in betas])+'\n')
+                
+            with open(fn_permute_ses, 'a') as fh_permute_ses:
+                fh_permute_ses.write(f'{phenotype}\t{condition}\t')
+                fh_permute_ses.write('\t'.join([str(v) for v in ses])+'\n')         
+    if verbose: print(results.summary())
+    # except:
+    #     logging.info('# - Ignore column: %s' % phenotype) # Ignore columns that can not be run (usually they are ID columns which do not contain numbers)
 
 
 # ########## End of helper functions ##########
