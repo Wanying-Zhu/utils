@@ -109,7 +109,7 @@ def process_args(log_args, *args):
     
     logging.info('# Arguments used:')
     for arg in vars(terminal_args):
-        cmd_used += f' --{arg} {getattr(terminal_args, arg)}'
+        # cmd_used += f' --{arg} {getattr(terminal_args, arg)}'
         msg = f'# - {arg}: {getattr(terminal_args, arg)}'
         logging.info(msg)
     

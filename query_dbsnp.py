@@ -1,4 +1,7 @@
 '''
+! Recommend only use this code to lookup chr:pos of rsID
+! Use code in snpid2rsid to map SNP ID to rsID
+
 Example usage:
 import sys
 sys.path.append('/data100t1/home/wanying/lab_code/utils')
@@ -51,6 +54,8 @@ def query_rsids(rsids, output='result.txt', not_found='not_found.txt', flush=Fal
                 fh_output.flush()
         except:
             fh_not_found.write(rsid+'\n')
+            if flush:
+                fh_not_found.flush()
         print(f'\r# Processing: {i+1}/{len(rsids)}        ', end='', flush=True)
     print('\n# Done')
     fh_output.close()
@@ -138,7 +143,7 @@ if __name__ == '__main__': # If run as a script
             if agrs.batch_size != -1:
                 # Process by bath if needed
                 pass
-    print('# SNPs loaded:', len(lst_snps)):
+    print('# SNPs loaded:', len(lst_snps))
     
     fh_snp.close()
     

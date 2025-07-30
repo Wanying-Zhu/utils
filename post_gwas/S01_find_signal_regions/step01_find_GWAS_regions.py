@@ -79,8 +79,14 @@ if __name__ == "__main__":
         args.delim = ' '
     
     logging.info('\n# Load GWAS result')
+    # Use (Nullable integer data type) Int64 or Int32 instead of int incase there are missing values
     df_gwas_result = pd.read_csv(args.gwas_result, sep=args.delim,
-                                 dtype={args.colname_pos: int, args.colname_pval: float})
+                                 dtype={args.colname_pos: 'Int64', args.colname_pval: float})
+    
+    # Drop duplicate variants to avoid issue (IndexError: tuple index out of range)
+    # Should not have dupliates if using chr:pos:ref:alt format
+    # But still drop duplicates just in case (rsID may have duplicates)
+    df_gwas_result.drop_duplicates(subset=[args.colname_pval], inplace=True)
     
     logging.info('# - shape (%s, %s)' % df_gwas_result.shape)
     

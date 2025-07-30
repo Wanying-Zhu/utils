@@ -12,7 +12,7 @@ def find_variants(lst_pos, output_fn, input_fn, mode='w', keep_multiallelic=True
     This function takes in positions of a list of snp (allow duplicates),
     then checks the input genotype file and output found SNP into an output file
     Parameters:
-        - lst_pos: positions (int) of snps. Must be list-like for iteration.
+        - lst_pos: chr:positions (int) of snps. Must be list-like for iteration.
                    For example: chr1:1234
         - output_fn: path and file name to output found SNPs
         - input_fn: path and file name of input genotype file. Must be a single chromosome

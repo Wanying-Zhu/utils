@@ -109,7 +109,7 @@ def if_ref_alt_allele_match(queried_ref, queried_alt, reference_ref, reference_a
     1. Ref and alt are the same: 1:1000:A:C and 1:1000:A:C
     2. Flipped allele: 1:1000:A:C and 1:1000:C:A
     3. Flipped strand: 1:1000:A:C and 1:1000:T:C
-    4. Different ways to represent inserstion and deletion: 1:1000:AAC:C, 1:1000:I:D
+    4. Different ways to represent inserstion and deletion: 1:1000:AAC:C, 1:1000:I:D !!!!!!!!!!!!! 1:1000:AA:- !!!!!!!!!!!!!!!!!!!!!!
     
     Params:
     - queried_ref, queried_alt: ref and alt alleles of the queried SNP
