@@ -1,6 +1,13 @@
 '''
 Convert databricks pull of phecode to phecode (counts or binary) table
 
+Usage:
+python count_phecode.py \
+--input_fn <sample phecodes file> \
+--output_path <output path> \
+--output_prefix <output prefix> \
+--col_names <column names for sample ID, phecode>
+
 Example call:
 python count_phecode.py --input_fn /data100t1/share/BioVU/phenos/official_release_0619/Below_PheCodes_20190531.csv \
 --output_path result \
@@ -83,7 +90,7 @@ if args.input_fn.endswith('.csv'):
     if args.delimiter is not None:
         df_phecode = pd.read_csv(args.input_fn, dtype=str, sep=args.delimiter)
     else:
-        df_phecode = pd.read_csv(args.input_fn, dtype=str, sep='')
+        df_phecode = pd.read_csv(args.input_fn, dtype=str)
 else:
     if args.delimiter is not None:
         df_phecode = pd.read_csv(args.input_fn, dtype=str, sep=args.delimiter)
