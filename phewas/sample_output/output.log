@@ -1,0 +1,17 @@
+
+# Call used:
+python count_phecode.py --input_fn sample_data/phecodes_input.csv --output_path sample_output/ --output_prefix output --col_names GRID PHEWAS_CODE
+
+# Arguments used:
+# - input_fn: sample_data/phecodes_input.csv
+# - output_path: sample_output/
+# - output_prefix: output
+# - col_names: ['GRID', 'PHEWAS_CODE']
+# - delimiter: None
+
+# Load phecode file: sample_data/phecodes_input.csv
+# - File size: (99, 3)
+# - Count number of phecodes and reformat
+
+# Save to output: sample_output/output.count.txt
+# Save binary to output: sample_output/output.binary.txt
