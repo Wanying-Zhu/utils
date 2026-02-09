@@ -1,5 +1,5 @@
-# Updated 2024/10/03
-
+# Updated 2025/12/11
+# Allow input file to be gzipped
 
 # Notes: changed calculation of expected p values according to Anna's code
 
@@ -8,6 +8,7 @@ from scipy.stats import beta
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import gzip
 
 
 def __read_file(filename):
@@ -18,8 +19,12 @@ def __read_file(filename):
     Return:
     - a pandas dataframe of the loaded file
     '''
-    with open(filename, 'r') as f:
-        line = fh.readline()
+    if filename.endswith('.gz'): # Hanle gzipped file
+        with gzip.open(filename, 'rt') as fh:
+            line = fh.readline()
+    else:
+        with open(filename, 'r') as fh:
+            line = fh.readline()
     if line=='': return None # Empty file, return None
     # Try to split by ','
     tmp = line.strip().split(',')

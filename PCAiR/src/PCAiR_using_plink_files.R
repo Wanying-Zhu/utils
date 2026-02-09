@@ -1,4 +1,5 @@
 # conda activate R4.4
+# this is an example for HTN GWAS in ADG250k HIS samples
 library(GENESIS)
 library(SNPRelate)
 library(GWASTools)

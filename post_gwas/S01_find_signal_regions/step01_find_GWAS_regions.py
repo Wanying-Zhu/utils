@@ -27,16 +27,22 @@ from setup_logger_and_parse_args import process_args
 
 def find_a_single_region(df_lead_snps, df_gwas_result, count):
     '''
-    Takes a list of lead SNPs, find the SNP with the smallest pval
+    Takes a list of lead SNPs, find the SNP with the smallest pval as the lead SNP.
+    Then find the region around the lead SNP.
     Params
     - df_lead_snps: a dataframe of lead SNPs filtered by pval threshold from the GWAS result
     - df_gwas_result: a dataframe of GWAS result
     Return
+    - chromosome, pos: chromosome number and position of the lead SNP
     - df_region: a dataframe of GWAS region
+    - an updated list of lead SNPs with the identified region removed
     '''
-    top_snp = df_lead_snps[df_lead_snps[args.colname_pval]==df_lead_snps[args.colname_pval].min()].iloc[0, :]
+    # top_snp = df_lead_snps[df_lead_snps[args.colname_pval]==df_lead_snps[args.colname_pval].min()].iloc[0, :]
+    top_snp = df_lead_snps.sort_values(by=args.colname_pval, ascending=True).iloc[0]
     chromosome, position = top_snp[args.colname_chr], top_snp[args.colname_pos]
-    pos_mask = (df_gwas_result[args.colname_pos]>=position-args.window_size/2) & (df_gwas_result[args.colname_pos]<=position+args.window_size/2)
+    pos_mask = ((df_gwas_result[args.colname_pos]>=position-args.window_size/2) &
+                (df_gwas_result[args.colname_pos]<=position+args.window_size/2)
+               )
     region_mask = (df_gwas_result[args.colname_chr]==chromosome) & pos_mask
     df_region = df_gwas_result[region_mask].copy()
     df_region['lead_snp'] = 0 # Mark lead SNP as 1
@@ -104,8 +110,11 @@ if __name__ == "__main__":
         
         # Remove the top SNP and any other lead SNPs in the window, and move on to the next one by pvalue
         # Keep non-lead SNPs, since overlap regions are merged later
-        mask_keep = (df_lead_snps[args.colname_pos]<position-args.window_size/2) | (df_lead_snps[args.colname_pos]>position+args.window_size/2)
-        df_lead_snps = df_lead_snps[mask_keep].copy()
+        mask_remove = ((df_lead_snps[args.colname_chr]==chromosome) &
+                       (df_lead_snps[args.colname_pos]>=position-args.window_size/2) &
+                       (df_lead_snps[args.colname_pos]<=position+args.window_size/2)
+                      )
+        df_lead_snps = df_lead_snps[~mask_remove].copy()
         
         print(f'\r# Process region {count}    ', end='', flush=True)
     print()

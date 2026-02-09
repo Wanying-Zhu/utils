@@ -1,5 +1,5 @@
 # Find rsID based on chr:position:ref:alt ID
-# Download VCF reference file fromhttps://ftp.ncbi.nih.gov/snp/latest_release/VCF/
+# Download VCF reference file from https://ftp.ncbi.nih.gov/snp/latest_release/VCF/
 '''
 Example call
 python /data100t1/home/wanying/lab_code/utils/snpid2rsid/chr_pos_ref_alt_id2rsid.py \
