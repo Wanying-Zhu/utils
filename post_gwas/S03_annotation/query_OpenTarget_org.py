@@ -101,62 +101,32 @@ def single_variant_query(variant_id:str):
             distance_from_tss = v['distanceFromTss']
             distance_from_footprint = v['distanceFromFootprint']
             predicted_consequence = v['variantConsequences'][0]['label']
-            
-            # OT uses consequence_score tp sort the output first:
-            # [Quote]
-            # The exact behaviour is that transcripts are ordered by consequence score in the first place;
-            # in case there are multiple transcripts with the same score,
-            # it compares based on the distance to gene’s footprint.
-            # The approach is, therefore, to prioritise functional impact over proximity.
-            # (https://community.opentargets.org/t/variant-table-and-vep-annotations/1884/5)
-            consequence_score = v['consequenceScore'] 
 
             if i==0:
-                # min_distance_from_footprint = distance_from_footprint
-                min_consequence_score = consequence_score
+                min_distance_from_footprint = abs(distance_from_footprint) # Notice the distance can be negative in Opentargets
                 nearest_likely_gene = gene_name
-                final_distance_from_footprint = distance_from_footprint
                 final_predicted_consequence = predicted_consequence
                 final_biotype = biotype
                 final_distance_from_tss = distance_from_tss
             else:
-                # if distance_from_footprint < min_distance_from_footprint:
-                #     min_distance_from_footprint = distance_from_footprint
-                #     nearest_likely_gene = gene_name
-                #     final_predicted_consequence = predicted_consequence
-                #     final_biotype = biotype
-                #     final_distance_from_tss = distance_from_tss
-                if consequence_score < min_consequence_score:
-                    min_consequence_score = consequence_score
+                if abs(distance_from_footprint) < min_distance_from_footprint:
+                    min_distance_from_footprint = abs(distance_from_footprint)
                     nearest_likely_gene = gene_name
-                    final_distance_from_footprint = distance_from_footprint
                     final_predicted_consequence = predicted_consequence
                     final_biotype = biotype
                     final_distance_from_tss = distance_from_tss
-        return(nearest_likely_gene, 
-               final_predicted_consequence,
-               final_biotype,
-               final_distance_from_footprint,
-               final_distance_from_tss,
-               min_consequence_score)
+        return (nearest_likely_gene, final_predicted_consequence, final_biotype, min_distance_from_footprint, final_distance_from_tss)
 
 
-def query_OpenTarget(variants:list,
-                     output_prefix:str,
-                     output_path:str,
-                     sort_by:str='',
-                     verbose:bool=False):
+def query_OpenTarget(variants:list, output_prefix:str, output_path:str, verbose:bool=False):
     '''
     Use GraphQL API to query OpenTarget for a list of variants
     Parameters
     ----------
-    - verbose: print "xxx not found" to console
     - variant : list
         list of variants in the format of [1_123456_T_C]
     - output_prefix: prefix of output file. The code will create two files, one for mapped gene, the other for SNPs without mapped gene
     - output_path: path to save the output files
-    - sort_by: 
-    - verbose: print SNP to console if not found
 
     Returns
     -------
@@ -173,7 +143,7 @@ def query_OpenTarget(variants:list,
     '''
     fh_output = open(f'{output_path}/{output_prefix}.OpenTarget.tsv', 'w')
     fh_not_found = open(f'{output_path}/{output_prefix}.OpenTarget.not_found.tsv', 'w')
-    fh_output.write('variant_id\tnearest_likely_gene\tpredicted_consequence\tbiotype\tdistance_from_footprint\tdistance_from_tss\tconsequence_score\n')
+    fh_output.write('variant_id\tnearest_likely_gene\tpredicted_consequence\tbiotype\tdistance_from_footprint\tdistance_from_tss\n')
     fh_not_found.write('variant_id\n')
     count_not_found, count_found = 0, 0
     for i, variant_id in enumerate(variants):
@@ -189,7 +159,7 @@ def query_OpenTarget(variants:list,
             continue
         
         # Save returned results to outpout file
-        fh_output.write(f'{variant_id}\t{res[0]}\t{res[1]}\t{res[2]}\t{res[3]}\t{res[4]}\t{res[5]}\n')
+        fh_output.write(f'{variant_id}\t{res[0]}\t{res[1]}\t{res[2]}\t{res[3]}\t{res[4]}\n')
         count_found += 1
         if len(variants) > 100 and i % 100 == 0:
             print(f'\r# Processing variant {i+1}/{len(variants)} (found/not found: {count_found}/{count_not_found})', end='', flush=True)

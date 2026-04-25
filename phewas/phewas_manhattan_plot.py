@@ -51,9 +51,9 @@ def create_manhattan_plot(
     category_col : str, optional
         Column name for phenotype categories, by default None
     significance_threshold : float, optional
-        Genome-wide significance threshold, by default 5e-8
+        Genome-wide significance threshold, by default BF correciton by the number of tests (phecodes)
     suggestive_threshold : float, optional
-        Suggestive significance threshold, by default 1e-5
+        Suggestive significance threshold, by default 0.05
     title : str, optional
         Plot title, by default 'PheWAS Manhattan Plot'
     figsize : tuple, optional
@@ -110,19 +110,21 @@ def create_manhattan_plot(
         # Add x-axis tick labels and positions
         ax.set_xticks(x_tick_pos)
         ax.set_xticklabels(x_tick_labels, rotation=45, ha='right')
-        # Add legend
+        
+        # Add legends
         lines = [Line2D([0], [0], color='grey', ls='', marker='^', label='Positive beta'),
                  Line2D([0], [0], color='grey', ls='', marker='v', label='Negative beta')]
-        ax.legend(handles=lines, loc='upper right', frameon=False)
+        
     else:
         # Just plot averthing together
         ax.scatter(plot_data['x_pos'], plot_data['-log10_p'], color=colors[0])
     # Annotate the significant phecodes
     mask = plot_data[pvalue_col]<significance_threshold
-    if len(plot_data[mask])>0:
+    if len(plot_data[mask])>10:
+        # If there are >10 significant phecodes then mark all of them
         phecodes_to_plot = plot_data[mask]
-    else: # Else plot the top 5 phecodes by p value
-        phecodes_to_plot = plot_data.sort_values(by=pvalue_col).head(5)
+    else: # Else plot the top 10 phecodes by p value
+        phecodes_to_plot = plot_data.sort_values(by=pvalue_col).head(10)
     annot = [] # fot adjust text later
     for _, row in phecodes_to_plot.iterrows():
         annot.append(ax.annotate(text=row[phenotype_col],
@@ -133,6 +135,10 @@ def create_manhattan_plot(
     # Add significance thresholds
     ax.axhline(y=-np.log10(significance_threshold), color='red', linestyle='--', alpha=0.5)
     ax.axhline(y=-np.log10(suggestive_threshold), color='orange', linestyle='--', alpha=0.5)
+    # Ad legends of the significance lines
+    lines += [Line2D([0], [0], color='red', ls='--', label=f'p-value<{significance_threshold:.2e}'),
+              Line2D([0], [0], color='orange', ls='--', label=f'p-value<{suggestive_threshold:.2e}')]
+    ax.legend(handles=lines, loc='upper right', frameon=False)
     
     ax.set_xlabel('Phenotypes', fontsize=12)
     ax.set_ylabel('-log10(p-value)', fontsize=12)
@@ -172,7 +178,7 @@ def parse_arguments():
     parser.add_argument('--category-col', type=str, default=None,
                       help='Column name for phenotype categories/groups (optional)')
     parser.add_argument('--significance-threshold', type=float, default=None,
-                      help='Genome-wide significance threshold (default: suggestive/n_rows)')
+                      help='"Genome-wide" significance threshold (default: suggestive/n_rows)')
     parser.add_argument('--suggestive-threshold', type=float, default=0.05,
                       help='Suggestive significance threshold (default: 0.05)')
     parser.add_argument('--title', type=str, default='PheWAS Manhattan Plot',
